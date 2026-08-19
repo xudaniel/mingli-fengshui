@@ -9,7 +9,7 @@ import {
 import { getTiaoHou, type TiaoHou } from "./tiaohou";
 import { detectRelations, type Relation } from "./relations";
 
-export { ELEMENTS, type Element } from "./analysis";
+export { ELEMENTS, type Element, type StrengthVerdict } from "./analysis";
 
 export interface HiddenStem {
   gan: string;
@@ -74,6 +74,11 @@ const XING_ZUO = [
   { name: "天蝎座", from: [10, 24] },
   { name: "射手座", from: [11, 23] },
 ];
+
+/** 某公历年份的流年干支（以该年 6 月 1 日为锚点，稳妥避开立春边界）。 */
+export function yearGanZhi(year: number): string {
+  return Solar.fromYmdHms(year, 6, 1, 12, 0, 0).getLunar().getEightChar().getYear();
+}
 
 function xingZuoOf(month: number, day: number): string {
   for (let i = XING_ZUO.length - 1; i >= 0; i--) {

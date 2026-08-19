@@ -67,19 +67,22 @@ function digitSum(n: number): number {
  * 通用公式：年份数字根 s；男命 11−s，女命 4+s，再取数字根；
  * 得 5 者男归坤（2）、女归艮（8）。
  */
-export function computeGua(year: number, gender: "male" | "female"): GuaInfo {
-  const s = digitSum(year);
-  let g = gender === "male" ? 11 - s : 4 + s;
-  g = digitSum(g);
-  if (g === 5) g = gender === "male" ? 2 : 8;
-
-  const def = GUA_TABLE[g];
+/** 由卦数（1/2/3/4/6/7/8/9）构建完整的卦信息，供命卦与宅卦共用。 */
+export function buildGuaInfo(guaNumber: number): GuaInfo {
+  const def = GUA_TABLE[guaNumber];
   const stars: GuaStar[] = STAR_META.map((m, i) => ({
     name: m.name,
     direction: def.dirs[i],
     auspicious: m.auspicious,
     meaning: m.meaning,
   }));
+  return { number: guaNumber, name: def.name, element: def.element, group: def.group, stars };
+}
 
-  return { number: g, name: def.name, element: def.element, group: def.group, stars };
+export function computeGua(year: number, gender: "male" | "female"): GuaInfo {
+  const s = digitSum(year);
+  let g = gender === "male" ? 11 - s : 4 + s;
+  g = digitSum(g);
+  if (g === 5) g = gender === "male" ? 2 : 8;
+  return buildGuaInfo(g);
 }

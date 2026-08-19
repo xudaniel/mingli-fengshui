@@ -64,6 +64,9 @@ declare module "lunar-javascript" {
     getJieQiTable(): Record<string, Solar>;
     getEightChar(): EightChar;
     getSolar(): Solar;
+    getDayInGanZhi(): string;
+    getDayYi(sect?: 1 | 2): string[];
+    getDayJi(sect?: 1 | 2): string[];
   }
 
   export interface Solar {

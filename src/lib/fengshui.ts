@@ -1,5 +1,6 @@
 import type { Element } from "./analysis";
 import type { StrengthAnalysis } from "./analysis";
+import type { Lang } from "./i18n/state";
 
 export interface ElementProfile {
   direction: string;
@@ -11,7 +12,7 @@ export interface ElementProfile {
   avoidTip: string;
 }
 
-export const ELEMENT_PROFILE: Record<Element, ElementProfile> = {
+const ELEMENT_PROFILE_ZH: Record<Element, ElementProfile> = {
   木: {
     direction: "正东、东南",
     color: "绿色、青色",
@@ -59,18 +60,78 @@ export const ELEMENT_PROFILE: Record<Element, ElementProfile> = {
   },
 };
 
+const ELEMENT_PROFILE_EN: Record<Element, ElementProfile> = {
+  木: {
+    direction: "East, Southeast",
+    color: "Green, jade",
+    material: "Wood furniture, plants, rattan, linen/cotton",
+    number: "3, 8",
+    season: "Spring",
+    homeTip: "Add plants or raw-wood furniture in the east or study; use stripes and vertical lines; wear greens",
+    avoidTip: "Avoid cold metal tones or large metal pieces in the east that suppress wood energy",
+  },
+  火: {
+    direction: "South",
+    color: "Red, purple, orange",
+    material: "Lighting, candles, pointed/triangular decor, leather",
+    number: "2, 7",
+    season: "Summer",
+    homeTip: "Boost light or warm-toned lamps in the south; use triangular or peaked decor; accent with red/purple",
+    avoidTip: "Avoid standing water or fish tanks in the south that dampen fire energy",
+  },
+  土: {
+    direction: "Northeast, Southwest, center",
+    color: "Yellow, brown, beige",
+    material: "Ceramics, stone, jade, square objects",
+    number: "5, 10",
+    season: "Late season (transitional months)",
+    homeTip: "Keep the center tidy and solid; favor ceramic, square pieces; avoid clutter; wear earth tones",
+    avoidTip: "Avoid long-term plant/wood clutter in the center, southwest, or northeast that drains earth energy",
+  },
+  金: {
+    direction: "West, Northwest",
+    color: "White, gold, silver",
+    material: "Metal ornaments, bronze, round objects",
+    number: "4, 9",
+    season: "Autumn",
+    homeTip: "Add metal or round decor in the west, favoring white/gold/silver; gold or silver jewelry also helps",
+    avoidTip: "Avoid year-round lit candles or large red areas in the west/northwest that suppress metal energy",
+  },
+  水: {
+    direction: "North",
+    color: "Black, blue, gray",
+    material: "Water features, glass, mirrors, wave patterns",
+    number: "1, 6",
+    season: "Winter",
+    homeTip: "Keep the north calm and still; a small water feature or blue/black accents help; avoid facing the bed there",
+    avoidTip: "Avoid heavy stone/earth clutter or large tan/brown areas in the north that restrain water energy",
+  },
+};
+
+export function getElementProfile(lang: Lang, element: Element): ElementProfile {
+  return (lang === "en" ? ELEMENT_PROFILE_EN : ELEMENT_PROFILE_ZH)[element];
+}
+
+/** @deprecated 保留供未指定语言时的旧调用点回退使用，新代码请用 getElementProfile。 */
+export const ELEMENT_PROFILE = ELEMENT_PROFILE_ZH;
+
 export interface FengshuiAdvice {
   favorable: Element[];
   unfavorable: Element[];
   summary: string;
 }
 
+const ADVICE_SUMMARY: Record<Lang, (s: StrengthAnalysis) => string> = {
+  zh: (s) =>
+    `${s.reasoning} 日常可从方位、颜色、材质入手补「${s.favorable.join("、")}」，` +
+    `并尽量避免过度强化「${s.unfavorable.join("、")}」。`,
+  en: (s) =>
+    `Favorable elements: ${s.favorable.join(", ")} — reinforce these through direction, color, and material choices. ` +
+    `Avoid over-strengthening: ${s.unfavorable.join(", ")}.`,
+};
+
 /** 由日主强弱分析导出的喜忌五行建议。 */
-export function deriveFengshuiAdvice(strength: StrengthAnalysis): FengshuiAdvice {
+export function deriveFengshuiAdvice(strength: StrengthAnalysis, lang: Lang = "zh"): FengshuiAdvice {
   const { favorable, unfavorable } = strength;
-  const summary =
-    `${strength.reasoning} ` +
-    `日常可从方位、颜色、材质入手补「${favorable.join("、")}」，` +
-    `并尽量避免过度强化「${unfavorable.join("、")}」。`;
-  return { favorable, unfavorable, summary };
+  return { favorable, unfavorable, summary: ADVICE_SUMMARY[lang](strength) };
 }

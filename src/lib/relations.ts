@@ -29,7 +29,7 @@ const LIU_HE: [string, string, Element][] = [
 ];
 
 /** 三合局：[长生, 帝旺, 墓库] → 化气 */
-const SAN_HE: [string, string, string, Element][] = [
+export const SAN_HE: [string, string, string, Element][] = [
   ["申", "子", "辰", "水"],
   ["寅", "午", "戌", "火"],
   ["亥", "卯", "未", "木"],
@@ -228,4 +228,22 @@ export function pillarBadges(relations: Relation[]): string[][] {
     for (const p of r.pillars) badges[p].add(short[r.kind]);
   }
   return badges.map((s) => [...s]);
+}
+
+export interface PairwiseRelation {
+  kind: "六合" | "相冲" | "相刑" | "自刑" | "相害";
+  element?: Element;
+}
+
+/** 两个孤立地支之间的两两关系（六合/冲/刑/害，不含需要三支的三合/三会）。
+ * 供合婚等需要单独比较两个地支的场景复用。 */
+export function pairwiseZhiRelation(a: string, b: string): PairwiseRelation[] {
+  const hits: PairwiseRelation[] = [];
+  const he = LIU_HE.find(([x, y]) => (x === a && y === b) || (x === b && y === a));
+  if (he) hits.push({ kind: "六合", element: he[2] });
+  if (LIU_CHONG.some(([x, y]) => (x === a && y === b) || (x === b && y === a))) hits.push({ kind: "相冲" });
+  if (LIU_HAI.some(([x, y]) => (x === a && y === b) || (x === b && y === a))) hits.push({ kind: "相害" });
+  if (XING_PAIRS.some(([x, y]) => (x === a && y === b) || (x === b && y === a))) hits.push({ kind: "相刑" });
+  if (a === b && ZI_XING.includes(a)) hits.push({ kind: "自刑" });
+  return hits;
 }
