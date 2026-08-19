@@ -1,5 +1,7 @@
 # 命理风水 · 八字四柱排盘
 
+**中文**（本页） | **English** [README.en.md](README.en.md)
+
 > 依据**出生地**与**出生年月日时**，在浏览器本地排出四柱八字、五行喜忌与八宅风水方位。
 
 **🌐 在线使用：<https://xudaniel.github.io/mingli-fengshui/>**
