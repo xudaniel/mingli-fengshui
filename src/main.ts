@@ -125,12 +125,12 @@ app.innerHTML = `
 
     <footer class="footer">
       <p>结果基于传统四柱八字排盘方法、简化的日主强弱分析与八宅命卦体系，仅供文化参考与娱乐，不构成任何专业建议。</p>
-      <p>命理风水 v${APP_VERSION} · 排盘核心由 <a href="https://github.com/6tail/lunar-javascript" target="_blank" rel="noopener">lunar-javascript</a> 提供 · <a href="https://github.com/xudaniel/mingli-fengshui" target="_blank" rel="noopener">GitHub</a></p>
+      <p>命理风水 v${APP_VERSION} · 作者 <a href="https://github.com/xudaniel" target="_blank" rel="noopener">Daniel Xu</a> · 排盘核心由 <a href="https://github.com/6tail/lunar-javascript" target="_blank" rel="noopener">lunar-javascript</a> 提供 · <a href="https://github.com/xudaniel/mingli-fengshui" target="_blank" rel="noopener">GitHub</a></p>
     </footer>
 
     <dialog id="about-dialog" class="about-dialog">
       <h2>关于「命理风水」</h2>
-      <p class="about-version">版本 v${APP_VERSION} · MIT 许可证开源</p>
+      <p class="about-version">版本 v${APP_VERSION} · 作者 Daniel Xu · MIT 许可证开源</p>
       <h3>它做了什么</h3>
       <ul>
         <li><strong>真太阳时校正</strong> —— 传统八字以太阳位置定时辰。应用根据出生地经度（每偏离时区中央经线 1° 约 4 分钟）及可选的均时差，把钟表时间换算为出生地的真太阳时后再排盘。</li>
