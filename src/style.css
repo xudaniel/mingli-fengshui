@@ -833,3 +833,117 @@ input:focus {
 .footer a:hover {
   color: var(--gold);
 }
+
+/* ---- v1.1.0 additions ---- */
+
+.warn-box {
+  background: rgba(216, 180, 106, 0.08);
+  border: 1px solid rgba(216, 180, 106, 0.45);
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 1.1rem;
+}
+
+.warn-box p {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--gold);
+}
+
+.warn-box p:last-child {
+  margin-bottom: 0;
+}
+
+.rel-badge {
+  display: inline-block;
+  font-size: 0.6rem;
+  border-radius: 4px;
+  padding: 0 0.25rem;
+  margin-left: 0.3rem;
+  vertical-align: 1px;
+}
+
+.rel-good {
+  color: #7fc86d;
+  border: 1px solid #7fc86d;
+}
+
+.rel-bad {
+  color: #d07a6e;
+  border: 1px solid #d07a6e;
+}
+
+.tag-tiao {
+  color: var(--gold);
+  border: 1px solid var(--gold);
+}
+
+.relations {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.relation-row {
+  display: grid;
+  grid-template-columns: 3.2rem 1fr;
+  gap: 0.7rem;
+  align-items: baseline;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+}
+
+.relation-kind {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.kind-good {
+  color: #7fc86d;
+}
+
+.kind-bad {
+  color: #d07a6e;
+}
+
+.relation-meaning {
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.55;
+}
+
+.tiaohou-box {
+  margin-top: 1rem;
+  padding: 0.8rem 0.95rem;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.tiaohou-title {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  color: var(--gold);
+  margin-right: 0.5rem;
+}
+
+.tiaohou-box b {
+  font-family: "Noto Serif SC", serif;
+  font-size: 1.05rem;
+}
+
+.tiaohou-elements {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.tiaohou-box .hint {
+  margin-top: 0.45rem;
+}

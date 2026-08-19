@@ -6,6 +6,8 @@ import {
   type Element,
   type StrengthAnalysis,
 } from "./analysis";
+import { getTiaoHou, type TiaoHou } from "./tiaohou";
+import { detectRelations, type Relation } from "./relations";
 
 export { ELEMENTS, type Element } from "./analysis";
 
@@ -44,6 +46,8 @@ export interface BaziResult {
   elementCounts: Record<Element, number>;
   dayMaster: { gan: string; element: Element };
   strength: StrengthAnalysis;
+  tiaoHou: TiaoHou;
+  relations: Relation[];
   taiYuan: string;
   taiYuanNaYin: string;
   mingGong: string;
@@ -213,6 +217,8 @@ export function computeBazi(
     elementCounts,
     dayMaster: { gan: ec.getDayGan(), element: dayMasterElement },
     strength,
+    tiaoHou: getTiaoHou(ec.getDayGan(), ec.getMonthZhi()),
+    relations: detectRelations(pillars.map((p) => p.zhi)),
     taiYuan: ec.getTaiYuan(),
     taiYuanNaYin: ec.getTaiYuanNaYin(),
     mingGong: ec.getMingGong(),

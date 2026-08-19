@@ -1,7 +1,7 @@
 {
   "name": "mingli-fengshui",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.1.0",
   "type": "module",
   "description": "命理风水 · 八字四柱排盘 —— 依据出生地与出生年月日时，在浏览器本地排出四柱八字、五行喜忌与八宅风水方位",
   "license": "MIT",
@@ -22,11 +22,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
     "typescript": "~6.0.2",
-    "vite": "^8.2.0"
+    "vite": "^8.2.0",
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "lunar-javascript": "^1.7.7"

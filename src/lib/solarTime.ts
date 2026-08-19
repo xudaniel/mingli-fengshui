@@ -34,6 +34,21 @@ function isLeapYear(year: number): boolean {
   return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
 }
 
+/** 平移 civil 时刻若干分钟（可为负），自动处理跨日进退位。 */
+export function shiftCivilMinutes(civil: CivilMoment, minutes: number): CivilMoment {
+  const base = new Date(
+    Date.UTC(civil.year, civil.month - 1, civil.day, civil.hour, civil.minute),
+  );
+  const shifted = new Date(base.getTime() + minutes * 60000);
+  return {
+    year: shifted.getUTCFullYear(),
+    month: shifted.getUTCMonth() + 1,
+    day: shifted.getUTCDate(),
+    hour: shifted.getUTCHours(),
+    minute: shifted.getUTCMinutes(),
+  };
+}
+
 export interface SolarTimeOptions {
   /** Birthplace longitude in degrees, east positive. */
   longitude: number;

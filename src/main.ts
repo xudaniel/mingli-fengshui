@@ -1,13 +1,20 @@
 import "./style.css";
 import { CITIES, guessUtcOffset, searchPlace, type CityEntry } from "./lib/cities";
-import { toTrueSolarTime, type CivilMoment } from "./lib/solarTime";
+import { toTrueSolarTime, shiftCivilMinutes, type CivilMoment } from "./lib/solarTime";
 import { computeBazi, ELEMENTS, type BaziResult, type Element } from "./lib/bazi";
 import { ganElement } from "./lib/analysis";
 import { deriveFengshuiAdvice, ELEMENT_PROFILE } from "./lib/fengshui";
 import { computeGua, type GuaInfo } from "./lib/bagua";
 import { loadHistory, saveHistory, clearHistory, type HistoryEntry } from "./lib/history";
+import { pillarBadges } from "./lib/relations";
+import {
+  inChinaDst,
+  isPre1949China,
+  DST_WARNING_TEXT,
+  PRE_1949_HINT_TEXT,
+} from "./lib/historicalTime";
 
-const APP_VERSION = "1.0.1";
+const APP_VERSION = "1.1.0";
 
 const ELEMENT_CLASS: Record<Element, string> = {
   木: "el-wood",
@@ -90,6 +97,17 @@ app.innerHTML = `
             </label>
           </div>
 
+          <div id="dst-warning" class="warn-box" hidden>
+            <p>⚠️ ${DST_WARNING_TEXT}</p>
+            <label class="checkbox-row">
+              <input id="dst-adjust" type="checkbox" checked />
+              按夏令时校正（排盘前回拨 1 小时）
+            </label>
+          </div>
+          <div id="pre1949-hint" class="warn-box" hidden>
+            <p>⚠️ ${PRE_1949_HINT_TEXT}</p>
+          </div>
+
           <button type="submit" class="btn-primary">开始排盘</button>
         </form>
 
@@ -117,7 +135,9 @@ app.innerHTML = `
       <ul>
         <li><strong>真太阳时校正</strong> —— 传统八字以太阳位置定时辰。应用根据出生地经度（每偏离时区中央经线 1° 约 4 分钟）及可选的均时差，把钟表时间换算为出生地的真太阳时后再排盘。</li>
         <li><strong>四柱八字</strong> —— 年、月、日、时四柱干支由 lunar-javascript 依二十四节气精确推算，含藏干、十神、纳音、空亡、胎元、命宫、身宫与大运。</li>
-        <li><strong>五行强弱</strong> —— 采用简化子平法加权：天干与地支藏干按本气/中气/余气计分，月令乘以 1.5 倍，据同党（印比）占比判断身强身弱，导出喜用神。</li>
+        <li><strong>五行强弱</strong> —— 采用简化子平法加权：天干与地支藏干按本气/中气/余气计分，月令乘以 1.5 倍，据同党（印比）占比判断身强身弱，导出喜用神；并依《穷通宝鉴》通行简表给出调候用神。</li>
+        <li><strong>地支关系</strong> —— 检测四柱地支间的六合、三合（含半合）、三会、相冲、相刑（含自刑）、相害，并标注于柱上。</li>
+        <li><strong>历史时制提醒</strong> —— 出生时刻落在 1986–1991 年中国夏令时期间时提示并可一键回拨 1 小时；1949 年前出生提示当时的五时区背景。</li>
         <li><strong>八宅命卦</strong> —— 由立春为界的出生年与性别推得本命卦（东四命/西四命），给出生气、天医、延年、伏位四吉方与四凶方。</li>
       </ul>
       <h3>它没有做什么</h3>
@@ -230,6 +250,32 @@ cityInput.addEventListener("keydown", (e) => {
 // Default to Beijing so the form is valid out of the box.
 applyCity("北京", 116.4074, 8);
 
+// ---- Historical-time warnings (1986–1991 DST, pre-1949 five zones) ----
+const dstWarningEl = document.querySelector<HTMLDivElement>("#dst-warning")!;
+const pre1949HintEl = document.querySelector<HTMLDivElement>("#pre1949-hint")!;
+
+function readCivilFromForm(): CivilMoment | null {
+  const dateVal = document.querySelector<HTMLInputElement>("#date")!.value;
+  const timeVal = document.querySelector<HTMLInputElement>("#time")!.value;
+  if (!dateVal || !timeVal) return null;
+  const [year, month, day] = dateVal.split("-").map(Number);
+  const [hour, minute] = timeVal.split(":").map(Number);
+  return { year, month, day, hour, minute };
+}
+
+function updateHistoricalWarnings() {
+  const civil = readCivilFromForm();
+  const utcOffset = Number(utcOffsetInput.value);
+  const longitude = Number(longitudeInput.value);
+  const dstApplies = civil !== null && utcOffset === 8 && inChinaDst(civil);
+  dstWarningEl.hidden = !dstApplies;
+  pre1949HintEl.hidden = !(civil !== null && isPre1949China(civil, longitude));
+}
+
+for (const sel of ["#date", "#time", "#utc-offset", "#longitude"]) {
+  document.querySelector(sel)!.addEventListener("input", updateHistoricalWarnings);
+}
+
 // ---- History ----
 const historyCard = document.querySelector<HTMLDivElement>("#history-card")!;
 const historyList = document.querySelector<HTMLDivElement>("#history-list")!;
@@ -284,13 +330,11 @@ form.addEventListener("submit", (e) => {
 });
 
 function runChart() {
+  updateHistoricalWarnings();
+  const civil = readCivilFromForm();
+  if (!civil) return;
   const dateVal = document.querySelector<HTMLInputElement>("#date")!.value;
   const timeVal = document.querySelector<HTMLInputElement>("#time")!.value;
-  if (!dateVal || !timeVal) return;
-
-  const [year, month, day] = dateVal.split("-").map(Number);
-  const [hour, minute] = timeVal.split(":").map(Number);
-  const civil: CivilMoment = { year, month, day, hour, minute };
 
   const gender = document.querySelector<HTMLInputElement>('input[name="gender"]:checked')!
     .value as "male" | "female";
@@ -300,18 +344,28 @@ function runChart() {
   const useTrueSolar = document.querySelector<HTMLInputElement>("#use-true-solar")!.checked;
   const useEot = document.querySelector<HTMLInputElement>("#use-eot")!.checked;
 
+  const notes: string[] = [];
   let effectiveCivil = civil;
-  let correctionNote = "";
+
+  const dstAdjust = document.querySelector<HTMLInputElement>("#dst-adjust")!;
+  if (!dstWarningEl.hidden && dstAdjust.checked) {
+    effectiveCivil = shiftCivilMinutes(effectiveCivil, -60);
+    notes.push("已按 1986–1991 夏令时回拨 1 小时");
+  }
+
   if (useTrueSolar) {
-    const solarTime = toTrueSolarTime(civil, {
+    const solarTime = toTrueSolarTime(effectiveCivil, {
       longitude,
       utcOffsetHours: utcOffset,
       applyEquationOfTime: useEot,
     });
     effectiveCivil = solarTime.corrected;
     const sign = solarTime.totalCorrectionMinutes >= 0 ? "+" : "";
-    correctionNote = `已按出生地经度${useEot ? "与均时差" : ""}校正真太阳时：${sign}${solarTime.totalCorrectionMinutes.toFixed(1)} 分钟`;
+    notes.push(
+      `已按出生地经度${useEot ? "与均时差" : ""}校正真太阳时：${sign}${solarTime.totalCorrectionMinutes.toFixed(1)} 分钟`,
+    );
   }
+  const correctionNote = notes.join("；");
 
   const bazi = computeBazi(effectiveCivil, gender);
   const gua = computeGua(bazi.fengshuiYear, gender);
@@ -404,6 +458,12 @@ function buildSummaryText(bazi: BaziResult, gua: GuaInfo, meta: RenderMeta): str
   );
   lines.push(`日主：${bazi.dayMaster.gan}${bazi.dayMaster.element} · ${bazi.strength.verdict}（同党 ${bazi.strength.supportPct.toFixed(0)}%）`);
   lines.push(`喜用：${bazi.strength.favorable.join("、")} · 忌：${bazi.strength.unfavorable.join("、")}`);
+  if (bazi.tiaoHou.stems.length) {
+    lines.push(`调候：${bazi.tiaoHou.stems.join("、")}（${bazi.tiaoHou.elements.join("、")}）`);
+  }
+  if (bazi.relations.length) {
+    lines.push(`地支关系：${bazi.relations.map((r) => r.meaning.replace(/，.*$/, "")).join("；")}`);
+  }
   lines.push(`胎元 ${bazi.taiYuan} · 命宫 ${bazi.mingGong} · 身宫 ${bazi.shenGong} · 日柱空亡 ${bazi.pillars[2].xunKong}`);
   lines.push(`命卦：${gua.name}卦（${gua.group}）`);
   lines.push(`四吉方：${gua.stars.filter((s) => s.auspicious).map((s) => `${s.name}${s.direction}`).join(" ")}`);
@@ -426,12 +486,16 @@ function renderResult(bazi: BaziResult, gua: GuaInfo, meta: RenderMeta) {
   const advice = deriveFengshuiAdvice(bazi.strength);
   const weighted = bazi.strength.weighted;
   const maxPct = Math.max(...ELEMENTS.map((e) => weighted[e]), 1);
+  const badges = pillarBadges(bazi.relations);
+  const goodBadge = (b: string) => b === "合" || b === "会";
 
   const pillarsHtml = bazi.pillars
     .map(
-      (p) => `
+      (p, pi) => `
       <div class="pillar">
-        <div class="pillar-label">${p.label} <span class="pillar-shishen">${p.shiShen}</span></div>
+        <div class="pillar-label">${p.label} <span class="pillar-shishen">${p.shiShen}</span>${badges[pi]
+          .map((b) => `<span class="rel-badge ${goodBadge(b) ? "rel-good" : "rel-bad"}">${b}</span>`)
+          .join("")}</div>
         <div class="pillar-ganzhi">
           <span class="gan ${ELEMENT_CLASS[ganElement(p.gan)]}">${p.gan}</span>
           <span class="zhi ${ELEMENT_CLASS[ganElement(p.hiddenStems[0].gan)]}">${p.zhi}</span>
@@ -453,12 +517,13 @@ function renderResult(bazi: BaziResult, gua: GuaInfo, meta: RenderMeta) {
   const elementBars = ELEMENTS.map((e) => {
     const pct = weighted[e];
     const w = Math.round((pct / maxPct) * 100);
-    const tag =
+    let tag =
       bazi.strength.favorable.includes(e)
         ? `<span class="tag tag-good">喜</span>`
         : bazi.strength.unfavorable.includes(e)
           ? `<span class="tag tag-bad">忌</span>`
           : "";
+    if (bazi.tiaoHou.elements.includes(e)) tag += `<span class="tag tag-tiao">调</span>`;
     return `
       <div class="element-row">
         <span class="element-name ${ELEMENT_CLASS[e]}">${e}</span>
@@ -476,12 +541,21 @@ function renderResult(bazi: BaziResult, gua: GuaInfo, meta: RenderMeta) {
       ? "流年天干属所忌之行，宜稳健行事"
       : "流年天干与喜忌无碍，平顺看待";
 
-  const adviceCards = advice.favorable
-    .map((e) => {
+  const tiaoHouPrimary = bazi.tiaoHou.primaryElement;
+  const adviceElements: { e: Element; viaTiaoHou: boolean }[] = advice.favorable.map((e) => ({
+    e,
+    viaTiaoHou: false,
+  }));
+  if (!advice.favorable.includes(tiaoHouPrimary)) {
+    adviceElements.push({ e: tiaoHouPrimary, viaTiaoHou: true });
+  }
+
+  const adviceCards = adviceElements
+    .map(({ e, viaTiaoHou }) => {
       const prof = ELEMENT_PROFILE[e];
       return `
       <div class="advice-card ${ELEMENT_CLASS[e]}">
-        <h4>补${e}</h4>
+        <h4>补${e}${viaTiaoHou ? ` <span class="tag tag-tiao">调候</span>` : ""}</h4>
         <p><strong>方位：</strong>${prof.direction}</p>
         <p><strong>颜色：</strong>${prof.color}</p>
         <p><strong>材质：</strong>${prof.material}</p>
@@ -491,6 +565,34 @@ function renderResult(bazi: BaziResult, gua: GuaInfo, meta: RenderMeta) {
       </div>`;
     })
     .join("");
+
+  const tiaoHouConflict = bazi.strength.unfavorable.includes(tiaoHouPrimary)
+    ? `本命扶抑忌「${tiaoHouPrimary}」而调候取「${tiaoHouPrimary}」，两说相左；实践中通常以调候（寒暖燥湿）优先。`
+    : "";
+  const tiaoHouHtml = bazi.tiaoHou.stems.length
+    ? `
+      <div class="tiaohou-box">
+        <span class="tiaohou-title">调候用神</span>
+        ${bazi.tiaoHou.stems
+          .map((s) => `<b class="${ELEMENT_CLASS[ganElement(s)]}">${s}</b>`)
+          .join("、")}
+        <span class="tiaohou-elements">（${bazi.tiaoHou.elements.join("、")}）</span>
+        <p class="hint">依《穷通宝鉴》通行简表，按日主与月令的寒暖燥湿取优先补救，首位为主用。${tiaoHouConflict}</p>
+      </div>`
+    : "";
+
+  const goodKinds = ["六合", "三合", "半合", "三会"];
+  const relationsHtml = bazi.relations.length
+    ? bazi.relations
+        .map(
+          (r) => `
+        <div class="relation-row">
+          <span class="relation-kind ${goodKinds.includes(r.kind) ? "kind-good" : "kind-bad"}">${r.kind}</span>
+          <span class="relation-meaning">${r.meaning}</span>
+        </div>`,
+        )
+        .join("")
+    : `<p class="hint">四柱地支之间无明显的合、冲、刑、害关系，盘面互动平静。</p>`;
 
   const starRows = gua.stars
     .map(
@@ -537,6 +639,11 @@ function renderResult(bazi: BaziResult, gua: GuaInfo, meta: RenderMeta) {
     </div>
 
     <div class="card">
+      <h2>地支关系</h2>
+      <div class="relations">${relationsHtml}</div>
+    </div>
+
+    <div class="card">
       <h2>五行强弱与喜用神</h2>
       <div class="elements">${elementBars}</div>
       <div class="strength-meter">
@@ -551,6 +658,7 @@ function renderResult(bazi: BaziResult, gua: GuaInfo, meta: RenderMeta) {
         </div>
       </div>
       <p class="advice-summary">${bazi.strength.reasoning}</p>
+      ${tiaoHouHtml}
     </div>
 
     <div class="card">

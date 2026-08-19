@@ -6,6 +6,8 @@
 
 **🌐 Live app: <https://xudaniel.github.io/mingli-fengshui/>**
 
+[![CI & Deploy](https://github.com/xudaniel/mingli-fengshui/actions/workflows/deploy.yml/badge.svg)](https://github.com/xudaniel/mingli-fengshui/actions/workflows/deploy.yml)
+
 A pure-frontend Chinese metaphysics charting app: from a single birth record it derives the full four-pillar chart (including hidden stems and Ten Gods), a weighted Five-Element strength verdict with favorable elements, practical element-remedy suggestions, an Eight Mansions (八宅) auspicious-directions compass, and the ten-year luck cycles. Everything is computed locally — no backend, no data upload.
 
 ## ✨ Features
@@ -18,6 +20,8 @@ Traditional BaZi reckons the hour by the sun's position in the local sky, not by
 - shows both the original and the corrected moment, so you can cross-check against other charting tools.
 
 For places like Ürümqi (87.6°E on UTC+8 clock time) the correction approaches two hours — enough to change the hour pillar and even the day pillar.
+
+The app also carries **historical-clock warnings**: births during China's daylight-saving years (1986–1991, clocks advanced one hour) trigger an alert with a one-click "-1 hour" correction, and pre-1949 births get a note about the era's five regional time zones (Kunlun/Sinkiang-Tibet/Kansu-Szechwan/Chungyuan/Changpai).
 
 ### 📜 Four Pillars chart
 The core calendar engine is the battle-tested open-source library [lunar-javascript](https://github.com/6tail/lunar-javascript), which computes stems and branches from the 24 solar terms with minute precision:
@@ -35,7 +39,11 @@ A step beyond naive "count the eight characters":
 - the **month branch is weighted ×1.5** — "the month commands the season";
 - supporters = the day master's own element (peers) + the element that generates it (resource); a support share ≥55% reads **strong**, ≤45% **weak**, otherwise **balanced**;
 - weak day masters favor resource & peers; strong ones favor output, wealth, and officer elements; balanced charts top up the weakest element;
+- a **seasonal-adjustment (调候) recommendation** from the standard Qiong Tong Bao Jian reference table is shown alongside — when it disagrees with the strength verdict, both are displayed with a note that practice usually favors the seasonal reading;
 - the full reasoning is displayed in the UI, with a strength gauge — the judgment is transparent, not a black box.
+
+### 🔗 Branch interactions (合冲刑害)
+The four branches are automatically checked for **six harmonies, trine combinations (incl. half-trines), directional assemblies, clashes, punishments (incl. self- and triple-punishments), and harms** — each listed with the pillars involved, the resulting element where applicable, and a plain-language meaning, plus badges on the pillar cards. The chart reads as an interacting system, not eight isolated characters.
 
 ### 🧭 Eight Mansions (八宅) life gua & directions
 The feng shui module uses the classic Eight Mansions system, which derives directly from birth data:
@@ -74,9 +82,12 @@ npm run build
 
 # preview the production build
 npm run preview
+
+# run the test suite (vitest, 50+ cases over core algorithms and known-chart snapshots)
+npm test
 ```
 
-The build is fully static — deploy it to GitHub Pages, Vercel, Netlify, or any static file server. This repo auto-deploys to GitHub Pages on every push to `main`.
+The build is fully static — deploy it to GitHub Pages, Vercel, Netlify, or any static file server. Every push to `main` runs type checks and the full test suite first; deployment to GitHub Pages happens only when they pass.
 
 ## 🏗️ Project structure
 
@@ -89,12 +100,17 @@ mingli-fengshui/
 │   └── lib/
 │       ├── bazi.ts         # chart pipeline: aggregates library output & analyses
 │       ├── analysis.ts     # element cycles, weighted strength, favorable elements
+│       ├── tiaohou.ts      # seasonal-adjustment reference table
+│       ├── relations.ts    # branch combination/clash detection
 │       ├── bagua.ts        # Eight Mansions gua & direction tables
 │       ├── fengshui.ts     # element → direction/color/material remedies
 │       ├── solarTime.ts    # true solar time (longitude + equation of time)
+│       ├── historicalTime.ts # 1986–1991 DST periods & pre-1949 hints
 │       ├── cities.ts       # curated city coordinates + Nominatim search
 │       ├── history.ts      # localStorage chart history
 │       └── lunar.d.ts      # minimal typings for lunar-javascript
+├── tests/                  # vitest suite (unit tests + known-chart snapshots)
+├── .github/workflows/      # CI: typecheck + tests + build, then Pages deploy
 ├── LICENSE                 # MIT
 └── package.json
 ```
@@ -103,16 +119,18 @@ mingli-fengshui/
 
 | Step | Method | Notes |
 | --- | --- | --- |
-| Stem/branch calc | lunar-javascript (solar terms to the minute) | Year pillar bounded by Lichun, month by the 12 Jie; late Zi hour uses school 2 (23:00 starts the next day pillar) |
+| Stem/branch calc | lunar-javascript (solar terms to the minute) | Year pillar bounded by Lichun, month by the 12 Jie; late Zi hour uses school 2 (after 23:00 the day pillar stays with the current day while the hour stem follows the next day) |
 | True solar time | 4 min/degree longitude + Spencer 1971 EoT | Each independently switchable; historical zones (e.g. Republican-era five zones) need a manual UTC-offset tweak |
-| Element strength | Hidden-stem weighting + month ×1.5 + support share | Simplified Zi Ping; excludes seasonal adjustment (调候), combinations/clashes, and chart structures (格局) |
-| Favorable elements | Support-the-weak / restrain-the-strong (扶抑) | Weak → support; strong → drain; balanced → top up the weakest |
+| Historical clocks | Exact 1986–1991 DST period table (matches tzdata) | In-range births get a warning and a one-click -1 hour correction; pre-1949 births get a five-zone note |
+| Element strength | Hidden-stem weighting + month ×1.5 + support share | Simplified Zi Ping; excludes chart structures (格局) |
+| Favorable elements | Support/restrain (扶抑) + seasonal (调候) side by side | Weak → support; strong → drain; balanced → top up the weakest; seasonal table from Qiong Tong Bao Jian, disagreements shown side by side |
+| Branch interactions | Standard tables for harmonies/trines/assemblies/clashes/punishments/harms | Display only; not yet folded into element scoring |
 | Life gua | Universal digit-root formula, Lichun-bounded year | A result of 5 maps to Kun for men, Gen for women |
 | Feng shui directions | Standard Eight Mansions wandering-stars table | 生气/天医/延年/伏位 + 祸害/五鬼/六煞/绝命 |
 
 ## ⚠️ Disclaimer
 
-All output is derived from published traditional rules via transparent, simplified algorithms, and is provided **for cultural education, reference, and entertainment only**. A full professional reading weighs many additional factors (seasonal balance, chart structure, combinations and clashes) and varies by practitioner. Please do not base medical, financial, marital, or other major life decisions on this app.
+All output is derived from published traditional rules via transparent, simplified algorithms, and is provided **for cultural education, reference, and entertainment only**. A full professional reading weighs many additional factors (chart structures, how combinations transform the element balance) and varies by practitioner. Please do not base medical, financial, marital, or other major life decisions on this app.
 
 ## 🔒 Privacy
 
