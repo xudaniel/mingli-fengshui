@@ -1,8 +1,24 @@
 {
   "name": "mingli-fengshui",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.1",
   "type": "module",
+  "description": "命理风水 · 八字四柱排盘 —— 依据出生地与出生年月日时，在浏览器本地排出四柱八字、五行喜忌与八宅风水方位",
+  "license": "MIT",
+  "author": "Daniel Xu",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xudaniel/mingli-fengshui.git"
+  },
+  "keywords": [
+    "bazi",
+    "fengshui",
+    "八字",
+    "四柱",
+    "风水",
+    "命理",
+    "chinese-astrology"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
