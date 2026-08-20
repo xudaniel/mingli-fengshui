@@ -43,6 +43,11 @@ const zh: Dict = {
   "result.title": "四柱八字",
   "result.of": "的",
   "result.copy": "复制结果",
+  "result.shareLink": "复制链接",
+  "result.shareLinkCopied": "链接已复制 ✓",
+  "result.shareLinkNote": "链接中含出生信息，分享即公开给接收者，对方打开会在其浏览器本地重新排盘。",
+  "result.saveImage": "保存图片",
+  "result.savingImage": "生成中…",
   "result.copied": "已复制 ✓",
   "result.copyFail": "复制失败",
   "result.birthplace": "出生地",
@@ -91,7 +96,14 @@ const zh: Dict = {
   "gua.compass": "实景罗盘",
 
   "dayun.title": "大运",
-  "dayun.hint": "每步大运十年，自起运岁数起依次行进；干支五行与喜忌对照可粗判各阶段顺逆。",
+  "dayun.hint": "每步大运十年，自起运岁数起依次行进；干支五行与喜忌对照可粗判各阶段顺逆。点击任一大运可展开该十年的逐年流年。",
+
+  "shensha.title": "神煞",
+  "shensha.hint": "传统命理中的固定查表法神煞，仅供文化参考，不构成性格或命运的绝对判定。",
+  "shensha.none": "命盘中未查得本表所列神煞。",
+  "shensha.peachBlossom": "桃花",
+  "shensha.peachBlossomMeaning": "主异性缘佳、人际有魅力，命中多柱则宜留意情感专一",
+  "shensha.pillars": "落于",
 
   "taisui.title": "犯太岁提醒",
   "taisui.hint": "对照未来 12 年与本命年支的值/冲/刑/害/破关系，仅供民俗参考。",
@@ -165,7 +177,7 @@ const zh: Dict = {
   "about.whatNotTitle": "它没有做什么",
   "about.whatNot": "完整的专业命理还需综合格局取用等更多因素；本应用的喜忌判断是公开、透明的简化算法，结果仅供文化参考与娱乐，请勿据此做出重大决定。",
   "about.privacyTitle": "隐私",
-  "about.privacy": "所有排盘计算均在浏览器本地完成；出生信息只存于本机浏览器的档案记录中，不会上传任何服务器。使用「搜索」查询陌生地名时，仅将地名发送给 OpenStreetMap 的公共地理编码服务。",
+  "about.privacy": "所有排盘计算均在浏览器本地完成；出生信息只存于本机浏览器的档案记录中，不会上传任何服务器。使用「搜索」查询陌生地名时，仅将地名发送给 OpenStreetMap 的公共地理编码服务。「复制链接」生成的分享链接会把出生信息编码在链接本身中（不经过服务器），请注意分享对象；对方打开链接后由其浏览器本地重新计算，不会上传数据。",
 
   "footer.disclaimer": "结果基于传统四柱八字排盘方法、简化的日主强弱分析与八宅命卦体系，仅供文化参考与娱乐，不构成任何专业建议。",
 
@@ -214,6 +226,11 @@ const en: Dict = {
   "result.title": "Four Pillars",
   "result.of": "'s",
   "result.copy": "Copy",
+  "result.shareLink": "Copy link",
+  "result.shareLinkCopied": "Link copied ✓",
+  "result.shareLinkNote": "The link encodes your birth data — sharing it discloses that to whoever opens it; their browser recomputes the chart locally.",
+  "result.saveImage": "Save image",
+  "result.savingImage": "Generating…",
   "result.copied": "Copied ✓",
   "result.copyFail": "Copy failed",
   "result.birthplace": "Birthplace",
@@ -262,7 +279,14 @@ const en: Dict = {
   "gua.compass": "Live Compass",
 
   "dayun.title": "Luck Cycles (大运)",
-  "dayun.hint": "Each cycle spans ten years from its starting age; compare its element against your favorable/unfavorable list for a rough read on each phase.",
+  "dayun.hint": "Each cycle spans ten years from its starting age; compare its element against your favorable/unfavorable list for a rough read on each phase. Click a cycle to expand its year-by-year detail.",
+
+  "shensha.title": "Auspicious Stars (神煞)",
+  "shensha.hint": "Traditional lookup-table stars — cultural reference only, not a definitive judgment of personality or fate.",
+  "shensha.none": "None of the stars in this table were found in your chart.",
+  "shensha.peachBlossom": "Peach Blossom",
+  "shensha.peachBlossomMeaning": "Charisma and romantic attention; if it lands on multiple pillars, consider staying focused in relationships",
+  "shensha.pillars": "on",
 
   "taisui.title": "Tai Sui Alert",
   "taisui.hint": "Checks the next 12 years against your birth-year branch for value/clash/punishment/harm/break — folk reference only.",
@@ -336,7 +360,7 @@ const en: Dict = {
   "about.whatNotTitle": "What it doesn't do",
   "about.whatNot": "A full professional reading also weighs chart structure and other advanced factors. This app's judgments are a transparent, simplified algorithm — for cultural reference and entertainment only. Please don't base major decisions on it.",
   "about.privacyTitle": "Privacy",
-  "about.privacy": "All computation happens locally in your browser; birth data is stored only in your browser's local profile records and never uploaded. Searching for a place outside the built-in list sends only that place name to the public OpenStreetMap Nominatim service.",
+  "about.privacy": "All computation happens locally in your browser; birth data is stored only in your browser's local profile records and never uploaded. Searching for a place outside the built-in list sends only that place name to the public OpenStreetMap Nominatim service. \"Copy link\" encodes birth data directly into the link itself (no server involved) — be mindful of who you share it with; the recipient's browser recomputes the chart locally, with no upload.",
 
   "footer.disclaimer": "Results are based on traditional Four Pillars methods, a simplified day-master strength analysis, and the Eight Mansions system — for cultural reference and entertainment only, not professional advice.",
 

@@ -36,7 +36,7 @@ The core calendar engine is the battle-tested open-source library [lunar-javascr
 - each pillar's **hidden stems** (principal/middle/residual qi) with their **Ten God** roles;
 - **Nayin**, **Void (空亡)**, **Conception Palace (胎元)**, **Life Palace (命宫)**, **Body Palace (身宫)**;
 - lunar date, **zodiac animal** (Lichun boundary) and Western star sign;
-- **ten-year luck cycles** (大运) with starting ages, plus the current **annual pillar (流年)** checked against your favorable elements.
+- **ten-year luck cycles** (大运) with starting ages, plus the current **annual pillar (流年)** checked against your favorable elements; click any luck cycle to expand its year-by-year (流年) detail, colored by favorable/unfavorable and highlighting the current year.
 
 ### ⚖️ Element strength & favorable elements (simplified Zi Ping method)
 A step beyond naive "count the eight characters":
@@ -50,6 +50,9 @@ A step beyond naive "count the eight characters":
 
 ### 🔗 Branch interactions (合冲刑害)
 The four branches are automatically checked for **six harmonies, trine combinations (incl. half-trines), directional assemblies, clashes, punishments (incl. self- and triple-punishments), and harms** — each listed with the pillars involved, the resulting element where applicable, and a plain-language meaning, plus badges on the pillar cards.
+
+### 🍑 Auspicious stars (神煞), including Peach Blossom
+Automatically looks up **Heavenly Nobleman (天乙贵人), Academic Star (文昌), Prosperity Star (禄神), Yang Blade (羊刃), Traveling Horse (驿马), General Star (将星), Canopy (华盖)**, and **Peach Blossom (桃花)** (via year-branch and day-branch trine lookups), listing which pillar each lands on with a plain-language meaning, color-coded by auspiciousness.
 
 ### 🧭 Eight Mansions (八宅) life gua & directions
 The feng shui module uses the classic Eight Mansions system, which derives directly from birth data:
@@ -93,11 +96,15 @@ Actionable daily guidance for each favorable element: directions, colors, materi
 - compatibility analysis and the calendar both draw directly from your saved profiles.
 
 ### 🌐 Bilingual UI · 📲 Installable offline
-- one-click 中文/English toggle, remembered across visits, defaulting to your browser's language; stems, branches, and Ten Gods carry pinyin and standard English glosses in English mode;
+- one-click 中文/English toggle, remembered across visits, defaulting to Chinese; stems, branches, and Ten Gods carry pinyin and standard English glosses in English mode;
 - installable to your home screen / desktop and fully usable offline (PWA with a precaching service worker);
 - elegant dark UI, responsive on desktop and mobile;
-- **copy as text** exports the whole chart summary in one click;
 - in-app **About** dialog documenting the algorithms and privacy policy.
+
+### 🔗 Sharing & export
+- **copy as text** exports the whole chart summary in one click;
+- **copy link** encodes your birth data into a URL — whoever opens it gets the chart recomputed locally in their own browser, with no server involved;
+- **save image** exports a shareable portrait-format PNG (pillars, elements, gua, luck cycles) — built for chat-app sharing.
 
 ## 🚀 Getting started
 
@@ -116,7 +123,7 @@ npm run build
 # preview the production build
 npm run preview
 
-# run the test suite (vitest, 130+ cases over core algorithms and known-chart snapshots)
+# run the test suite (vitest, 150+ cases over core algorithms and known-chart snapshots)
 npm test
 ```
 
@@ -131,17 +138,20 @@ mingli-fengshui/
 ├── src/
 │   ├── main.ts                # UI orchestration: form, nav, rendering, profiles, about dialog
 │   ├── style.css               # all styles (dark theme)
-│   ├── views/                  # relatively self-contained views/widgets
+│   ├── views/                  # relatively self-contained views/widgets (lazy-loaded, see bundle-size note below)
 │   │   ├── compatView.ts        # compatibility analysis page
 │   │   ├── calendarView.ts      # auspicious-day calendar page
 │   │   ├── compassSvg.ts        # Eight Mansions compass SVG renderer
 │   │   ├── compassLive.ts       # live mobile compass (DeviceOrientation)
-│   │   └── lifeCurveSvg.ts      # life-curve SVG renderer
+│   │   ├── lifeCurveSvg.ts      # life-curve SVG renderer
+│   │   └── shareImage.ts        # chart-summary image export (hand-drawn Canvas)
 │   └── lib/
 │       ├── bazi.ts              # chart pipeline: aggregates library output & analyses
 │       ├── analysis.ts          # element cycles, weighted strength, favorable elements
 │       ├── tiaohou.ts           # seasonal-adjustment reference table
 │       ├── relations.ts         # branch combination/clash detection
+│       ├── peachblossom.ts      # Peach Blossom (桃花) star detection
+│       ├── shensha.ts           # auspicious stars: Nobleman/Academic/Prosperity/Blade/Horse/General/Canopy
 │       ├── taisui.ts            # Tai Sui (value/clash/punishment/harm/break) detection
 │       ├── interpret.ts         # personality/career text generation (bilingual)
 │       ├── lifecurve.ts         # life-curve scoring
@@ -152,13 +162,14 @@ mingli-fengshui/
 │       ├── hourSensitivity.ts   # twelve-hour scan for unknown birth times
 │       ├── profiles.ts          # saved profiles (localStorage + import/export)
 │       ├── profileCompute.ts    # shared profile → full chart computation
+│       ├── shareLink.ts         # URL-hash encode/decode for share links
 │       ├── fengshui.ts          # element → direction/color/material remedies (bilingual)
 │       ├── solarTime.ts         # true solar time (longitude + equation of time)
 │       ├── historicalTime.ts    # 1986–1991 DST periods & pre-1949 hints
 │       ├── cities.ts            # curated city coordinates + Nominatim search
 │       ├── i18n/                # dictionary, terminology glosses, language state
 │       └── lunar.d.ts           # minimal typings for lunar-javascript
-├── tests/                    # vitest suite (130+ cases, jsdom environment)
+├── tests/                    # vitest suite (150+ cases, jsdom environment)
 ├── .github/workflows/        # CI: typecheck + tests + build, then Pages deploy
 ├── LICENSE                   # MIT
 └── package.json
@@ -181,6 +192,8 @@ mingli-fengshui/
 | Compatibility score | Weighted sum over day-stem combination / day-branch relation / zodiac relation / element complement / gua grouping | 0–100 is a sorting aid only, not a professional matchmaking reading |
 | Calendar score | Day-pillar clash −3, punishment/harm −2, six harmony +1, favorable stem +2 / unfavorable −1 | Layered on lunar-javascript's built-in daily do's/don'ts |
 | Unknown hour | Casts all twelve traditional hour blocks (using each one's conventional start time) | Separates stable vs. sensitive conclusions rather than guessing one answer |
+| Auspicious stars / Peach Blossom | Nobleman/Academic/Prosperity/Blade looked up by day stem; Traveling Horse/General/Canopy/Peach Blossom looked up by year- and day-branch trine group | Static lookup tables, cultural reference only |
+| Bundle size | lunar-javascript is a single ~426KB file that resists tree-shaking — it dominates the main bundle; secondary views (compatibility, calendar, live compass, image export) are lazy-loaded via dynamic `import()` | Forking/replacing the calendar engine was evaluated and shelved — too much correctness risk for a birth-chart app relative to the payoff; code-splitting was the safer win |
 
 ## ⚠️ Disclaimer
 

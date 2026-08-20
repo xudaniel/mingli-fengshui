@@ -1,7 +1,7 @@
 import "./style.css";
 import { CITIES, guessUtcOffset, searchPlace, type CityEntry } from "./lib/cities";
 import { toTrueSolarTime, shiftCivilMinutes, type CivilMoment } from "./lib/solarTime";
-import { computeBazi, ELEMENTS, type BaziResult, type Element } from "./lib/bazi";
+import { computeBazi, yearGanZhi, ELEMENTS, type BaziResult, type Element } from "./lib/bazi";
 import { ganElement } from "./lib/analysis";
 import { getElementProfile } from "./lib/fengshui";
 import { computeGua, DIRECTIONS, type GuaInfo, type Direction } from "./lib/bagua";
@@ -24,6 +24,8 @@ import {
   PRE_1949_HINT_TEXT,
 } from "./lib/historicalTime";
 import { detectTaiSui } from "./lib/taisui";
+import { detectPeachBlossom } from "./lib/peachblossom";
+import { detectShenSha } from "./lib/shensha";
 import { interpretChart } from "./lib/interpret";
 import { computeLifeCurve } from "./lib/lifecurve";
 import { renderLifeCurveSvg } from "./views/lifeCurveSvg";
@@ -31,13 +33,11 @@ import { computeHouseGua, matchHouseToPerson, roomSuggestionFor } from "./lib/ho
 import { scanHourSensitivity, type HourSensitivityResult } from "./lib/hourSensitivity";
 import { renderCompassSvg, DIR_EN, STAR_MEANING_EN } from "./views/compassSvg";
 import { STAR_EN } from "./lib/i18n/terms";
-import { isCompassSupported, openCompassOverlay } from "./views/compassLive";
-import { renderCompatView } from "./views/compatView";
-import { renderCalendarView } from "./views/calendarView";
+import { encodeShareHash, decodeShareHash } from "./lib/shareLink";
 import { t } from "./lib/i18n/dict";
 import { getLang, setLang, type Lang } from "./lib/i18n/state";
 
-const APP_VERSION = "1.3.0";
+const APP_VERSION = "1.4.0";
 const LANG: Lang = getLang();
 const tt = (key: string, vars?: Record<string, string | number>) => t(LANG, key, vars);
 
@@ -218,15 +218,23 @@ const viewCalendar = document.querySelector<HTMLElement>("#view-calendar")!;
 // Re-render compat/calendar fresh on every visit so newly saved profiles
 // (from the chart form) always show up without extra bookkeeping.
 document.querySelectorAll<HTMLButtonElement>(".nav-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
+  btn.addEventListener("click", async () => {
     document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
     const view = btn.dataset.view;
     viewChart.hidden = view !== "chart";
     viewCompat.hidden = view !== "compat";
     viewCalendar.hidden = view !== "calendar";
-    if (view === "compat") renderCompatView(viewCompat, LANG);
-    else if (view === "calendar") renderCalendarView(viewCalendar, LANG);
+    // Lazy-loaded: most visits never touch these two tabs, so keep them out
+    // of the initial bundle (see #10 — lunar-javascript already dominates
+    // the main chunk; splitting rarely-used views is the safe size win).
+    if (view === "compat") {
+      const { renderCompatView } = await import("./views/compatView");
+      renderCompatView(viewCompat, LANG);
+    } else if (view === "calendar") {
+      const { renderCalendarView } = await import("./views/calendarView");
+      renderCalendarView(viewCalendar, LANG);
+    }
   });
 });
 
@@ -331,6 +339,9 @@ cityInput.addEventListener("keydown", (e) => {
 
 applyCity("北京", 116.4074, 8);
 
+// ---- Load from share link (#...) if present (applied after runChart is wired below) ----
+const sharedState = decodeShareHash(location.hash);
+
 // ---- Historical-time warnings ----
 const dstWarningEl = document.querySelector<HTMLDivElement>("#dst-warning")!;
 const pre1949HintEl = document.querySelector<HTMLDivElement>("#pre1949-hint")!;
@@ -411,7 +422,12 @@ function renderProfiles(list: Profile[]) {
   });
 }
 
-function fillForm(p: Profile) {
+type FormFillable = Pick<
+  Profile,
+  "name" | "gender" | "date" | "time" | "hourUnknown" | "city" | "longitude" | "utcOffset" | "useTrueSolar" | "useEot"
+>;
+
+function fillForm(p: FormFillable) {
   document.querySelector<HTMLInputElement>("#name")!.value = p.name;
   document.querySelector<HTMLInputElement>(`input[name="gender"][value="${p.gender}"]`)!.checked = true;
   document.querySelector<HTMLInputElement>("#date")!.value = p.date;
@@ -469,6 +485,13 @@ form.addEventListener("submit", (e) => {
   runChart();
   resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
 });
+
+if (sharedState) {
+  fillForm(sharedState);
+  updateHistoricalWarnings();
+  runChart();
+  resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
 function pad(n: number): string {
   return String(n).padStart(2, "0");
@@ -732,18 +755,43 @@ function renderResult(bazi: BaziResult, gua: GuaInfo, meta: RenderMeta) {
     )
     .join("");
 
+  const nowYearForDaYun = new Date().getFullYear();
   const daYunHtml = bazi.daYun.length
     ? `<div class="dayun-scroll">${bazi.daYun
-        .map(
-          (d) => `
-        <div class="dayun-item">
+        .map((d) => {
+          const isCurrent = nowYearForDaYun >= d.startYear && nowYearForDaYun <= d.endYear;
+          return `
+        <button type="button" class="dayun-item${isCurrent ? " dayun-current" : ""}" data-start="${d.startYear}" data-end="${d.endYear}" data-start-age="${d.startAge}">
           <div class="dayun-age">${d.startAge}–${d.endAge}${tt("common.age")}</div>
           <div class="dayun-ganzhi"><span class="${ELEMENT_CLASS[ganElement(d.ganZhi[0])]}">${d.ganZhi[0]}</span>${d.ganZhi[1]}</div>
           <div class="dayun-year">${d.startYear}–${d.endYear}</div>
-        </div>`,
-        )
-        .join("")}</div>`
+        </button>`;
+        })
+        .join("")}</div>
+      <div id="liunian-panel" class="liunian-panel"></div>`
     : "";
+
+  // ---- 神煞（含桃花）----
+  const branchesOnly = bazi.pillars.map((p) => p.zhi);
+  const peachHits = detectPeachBlossom(branchesOnly);
+  const shenShaHits = detectShenSha(bazi.dayMaster.gan, branchesOnly[0], branchesOnly[2], branchesOnly);
+  const pillarLabels = bazi.pillars.map((p) => p.label);
+  const shenShaRows: string[] = [];
+  for (const hit of peachHits.hits) {
+    shenShaRows.push(`
+      <div class="relation-row kind-good">
+        <span class="relation-kind">${tt("shensha.peachBlossom")}</span>
+        <span class="relation-meaning">${tt("shensha.pillars")} ${hit.pillars.map((i) => pillarLabels[i]).join("、")}（${hit.peachZhi}） · ${tt("shensha.peachBlossomMeaning")}</span>
+      </div>`);
+  }
+  for (const hit of shenShaHits) {
+    shenShaRows.push(`
+      <div class="relation-row ${hit.auspicious ? "kind-good" : "kind-bad"}">
+        <span class="relation-kind">${hit.name}</span>
+        <span class="relation-meaning">${tt("shensha.pillars")} ${hit.pillars.map((i) => pillarLabels[i]).join("、")} · ${hit.meaning}</span>
+      </div>`);
+  }
+  const shenShaHtml = shenShaRows.length ? shenShaRows.join("") : `<p class="hint">${tt("shensha.none")}</p>`;
 
   // ---- 犯太岁 ----
   const nowYear = new Date().getFullYear();
@@ -795,7 +843,9 @@ function renderResult(bazi: BaziResult, gua: GuaInfo, meta: RenderMeta) {
     : "";
 
   const compassBtnHtml =
-    isCompassSupported() && matchMedia("(pointer: coarse)").matches
+    typeof window !== "undefined" &&
+    "DeviceOrientationEvent" in window &&
+    matchMedia("(pointer: coarse)").matches
       ? `<button type="button" id="compass-btn" class="btn-secondary btn-small">${tt("gua.compass")}</button>`
       : "";
 
@@ -803,7 +853,11 @@ function renderResult(bazi: BaziResult, gua: GuaInfo, meta: RenderMeta) {
     <div class="card">
       <div class="card-head">
         <h2>${meta.name ? `${meta.name}${tt("result.of")} ` : ""}${tt("result.title")}</h2>
-        <button type="button" id="copy-btn" class="btn-secondary btn-small">${tt("result.copy")}</button>
+        <div class="card-head-actions">
+          <button type="button" id="save-image-btn" class="btn-secondary btn-small">${tt("result.saveImage")}</button>
+          <button type="button" id="share-link-btn" class="btn-secondary btn-small">${tt("result.shareLink")}</button>
+          <button type="button" id="copy-btn" class="btn-secondary btn-small">${tt("result.copy")}</button>
+        </div>
       </div>
       <p class="hint">
         ${tt("result.birthplace")}：${meta.cityLabel} · ${tt("result.civilTime")}：${fmtCivil(meta.civil)}
@@ -867,6 +921,12 @@ function renderResult(bazi: BaziResult, gua: GuaInfo, meta: RenderMeta) {
     </div>
 
     <div class="card">
+      <h2>${tt("shensha.title")}</h2>
+      <p class="hint">${tt("shensha.hint")}</p>
+      <div class="relations">${shenShaHtml}</div>
+    </div>
+
+    <div class="card">
       <h2>${tt("taisui.title")}</h2>
       <p class="hint">${tt("taisui.hint")}</p>
       <div class="relations">${taiSuiHtml}</div>
@@ -924,8 +984,91 @@ function renderResult(bazi: BaziResult, gua: GuaInfo, meta: RenderMeta) {
     setTimeout(() => (btn.textContent = tt("result.copy")), 2000);
   });
 
-  document.querySelector<HTMLButtonElement>("#compass-btn")?.addEventListener("click", () => {
+  document.querySelector<HTMLButtonElement>("#save-image-btn")!.addEventListener("click", async (ev) => {
+    const btn = ev.currentTarget as HTMLButtonElement;
+    const originalText = btn.textContent;
+    btn.textContent = tt("result.savingImage");
+    btn.disabled = true;
+    try {
+      const { renderShareCardCanvas, downloadCanvas } = await import("./views/shareImage");
+      const canvas = await renderShareCardCanvas(
+        bazi,
+        gua,
+        { name: meta.name, cityLabel: meta.cityLabel, civilLabel: fmtCivil(meta.civil) },
+        LANG,
+      );
+      downloadCanvas(canvas, `mingli-fengshui-${meta.civil.year}${pad(meta.civil.month)}${pad(meta.civil.day)}.png`);
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  });
+
+  document.querySelector<HTMLButtonElement>("#share-link-btn")!.addEventListener("click", async (ev) => {
+    const btn = ev.currentTarget as HTMLButtonElement;
+    const hash = encodeShareHash({
+      name: document.querySelector<HTMLInputElement>("#name")!.value.trim(),
+      gender: meta.gender,
+      date: document.querySelector<HTMLInputElement>("#date")!.value,
+      time: hourUnknownInput.checked ? "" : timeInput.value,
+      hourUnknown: hourUnknownInput.checked,
+      city: cityInput.value,
+      longitude: Number(longitudeInput.value),
+      utcOffset: Number(utcOffsetInput.value),
+      useTrueSolar: document.querySelector<HTMLInputElement>("#use-true-solar")!.checked,
+      useEot: document.querySelector<HTMLInputElement>("#use-eot")!.checked,
+    });
+    const url = `${location.origin}${location.pathname}#${hash}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      btn.textContent = tt("result.shareLinkCopied");
+    } catch {
+      btn.textContent = tt("result.copyFail");
+    }
+    setTimeout(() => (btn.textContent = tt("result.shareLink")), 2000);
+  });
+
+  document.querySelector<HTMLButtonElement>("#compass-btn")?.addEventListener("click", async () => {
+    const { openCompassOverlay } = await import("./views/compassLive");
     openCompassOverlay(gua, LANG);
+  });
+
+  const liuNianPanel = document.querySelector<HTMLDivElement>("#liunian-panel");
+  document.querySelectorAll<HTMLButtonElement>(".dayun-item").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".dayun-item").forEach((b) => b.classList.remove("dayun-selected"));
+      const alreadyOpen = btn.classList.contains("dayun-selected");
+      if (alreadyOpen || !liuNianPanel) {
+        if (liuNianPanel) liuNianPanel.innerHTML = "";
+        return;
+      }
+      btn.classList.add("dayun-selected");
+      const startYear = Number(btn.dataset.start);
+      const startAge = Number(btn.dataset.startAge);
+      const years = Array.from({ length: 10 }, (_, i) => startYear + i);
+      liuNianPanel.innerHTML = `
+        <div class="liunian-grid">
+          ${years
+            .map((y) => {
+              const gz = yearGanZhi(y);
+              const el = ganElement(gz[0]);
+              const tag = bazi.strength.favorable.includes(el)
+                ? "liunian-good"
+                : bazi.strength.unfavorable.includes(el)
+                  ? "liunian-bad"
+                  : "";
+              const isNow = y === nowYearForDaYun ? " liunian-now" : "";
+              return `
+              <div class="liunian-cell ${tag}${isNow}">
+                <span class="liunian-year">${y}</span>
+                <span class="liunian-ganzhi">${gz}</span>
+                <span class="liunian-age">${startAge + (y - startYear)}${tt("common.age")}</span>
+              </div>`;
+            })
+            .join("")}
+        </div>`;
+      liuNianPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
   });
 
   const houseResultEl = document.querySelector<HTMLDivElement>("#house-gua-result")!;
