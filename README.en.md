@@ -10,6 +10,8 @@
 
 [![CI & Deploy](https://github.com/xudaniel/mingli-fengshui/actions/workflows/deploy.yml/badge.svg)](https://github.com/xudaniel/mingli-fengshui/actions/workflows/deploy.yml)
 
+![Mingli Fengshui application preview](public/og-image.png)
+
 A pure-frontend Chinese metaphysics charting app: from a single birth record it derives the full four-pillar chart (hidden stems and Ten Gods included), a weighted Five-Element strength verdict with favorable elements, practical element-remedy suggestions, an Eight Mansions (八宅) auspicious-directions compass, luck cycles, a Tai Sui alert, a personality/career reading, and a life-curve chart — plus compatibility analysis, a personal auspicious-day calendar, and a live mobile compass. Everything is computed locally, with a bilingual (中文/English) interface.
 
 ## ✨ Features
