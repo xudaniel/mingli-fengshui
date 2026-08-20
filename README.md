@@ -10,6 +10,8 @@
 
 [![CI & Deploy](https://github.com/xudaniel/mingli-fengshui/actions/workflows/deploy.yml/badge.svg)](https://github.com/xudaniel/mingli-fengshui/actions/workflows/deploy.yml)
 
+![命理风水应用预览](public/og-image.png)
+
 一个纯前端的中国传统命理排盘应用：输入出生信息即可得到完整的四柱干支（含藏干十神）、加权五行强弱与喜用神分析、五行调理建议、八宅命卦吉凶方位图、大运流年、犯太岁提醒、性格与事业解读、人生五行走势图，并支持合婚配对、个人择吉日历与手机实景罗盘。所有计算都在浏览器本地完成，不依赖任何后端；界面支持中英双语。
 
 ## ✨ 功能特性
