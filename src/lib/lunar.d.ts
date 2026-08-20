@@ -64,9 +64,31 @@ declare module "lunar-javascript" {
     getJieQiTable(): Record<string, Solar>;
     getEightChar(): EightChar;
     getSolar(): Solar;
+    getMonth(): number;
+    getDay(): number;
     getDayInGanZhi(): string;
+    getMonthInGanZhiExact(): string;
+    getYearInGanZhiExact(): string;
     getDayYi(sect?: 1 | 2): string[];
     getDayJi(sect?: 1 | 2): string[];
+    getZhiXing(): string;
+    getXiu(): string;
+    getXiuLuck(): string;
+    getXiuSong(): string;
+    getZheng(): string;
+    getAnimal(): string;
+    getGong(): string;
+    getShou(): string;
+    getDayTianShen(): string;
+    getDayTianShenType(): string;
+    getDayTianShenLuck(): string;
+    getDayPositionXiDesc(): string;
+    getDayPositionFuDesc(sect?: 1 | 2): string;
+    getDayPositionCaiDesc(): string;
+    getDayPositionTaiSuiDesc(sect?: 1 | 2): string;
+    getPengZuGan(): string;
+    getPengZuZhi(): string;
+    getWeekInChinese(): string;
   }
 
   export interface Solar {
@@ -78,6 +100,7 @@ declare module "lunar-javascript" {
     toYmd(): string;
     toYmdHms(): string;
     getLunar(): Lunar;
+    getWeekInChinese(): string;
   }
 
   export const Solar: {

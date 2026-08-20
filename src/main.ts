@@ -37,7 +37,7 @@ import { encodeShareHash, decodeShareHash } from "./lib/shareLink";
 import { t } from "./lib/i18n/dict";
 import { getLang, setLang, type Lang } from "./lib/i18n/state";
 
-const APP_VERSION = "1.4.0";
+const APP_VERSION = "2.0.0";
 const LANG: Lang = getLang();
 const tt = (key: string, vars?: Record<string, string | number>) => t(LANG, key, vars);
 
@@ -64,14 +64,16 @@ app.innerHTML = `
         <button type="button" id="about-btn" class="link-btn">${tt("app.about")}</button>
       </div>
       <nav class="top-nav">
-        <button type="button" class="nav-btn active" data-view="chart">${tt("nav.chart")}</button>
+        <button type="button" class="nav-btn" data-view="home">${tt("nav.home")}</button>
+        <button type="button" class="nav-btn" data-view="chart">${tt("nav.chart")}</button>
         <button type="button" class="nav-btn" data-view="compat">${tt("nav.compat")}</button>
         <button type="button" class="nav-btn" data-view="calendar">${tt("nav.calendar")}</button>
       </nav>
     </header>
 
     <main>
-    <div class="layout" id="view-chart">
+    <div id="view-home" class="single-view" hidden></div>
+    <div class="layout" id="view-chart" hidden>
       <div class="side-col">
         <form id="bazi-form" class="card form-card">
           <div class="field">
@@ -168,8 +170,7 @@ app.innerHTML = `
       <section id="result" class="result"></section>
     </div>
 
-    <div id="view-compat" class="single-view" hidden></div>
-    <div id="view-calendar" class="single-view" hidden></div>
+    <div id="view-generic" class="single-view" hidden></div>
     </main>
 
     <footer class="footer">
@@ -188,6 +189,7 @@ app.innerHTML = `
         <li>${tt("about.li.relations")}</li>
         <li>${tt("about.li.gua")}</li>
         <li>${tt("about.li.extra")}</li>
+        <li>${tt("about.li.portal")}</li>
       </ul>
       <h3>${tt("about.whatNotTitle")}</h3>
       <p>${tt("about.whatNot")}</p>
@@ -210,32 +212,43 @@ document.querySelector("#lang-toggle")!.addEventListener("click", () => {
 const aboutDialog = document.querySelector<HTMLDialogElement>("#about-dialog")!;
 document.querySelector("#about-btn")!.addEventListener("click", () => aboutDialog.showModal());
 
-// ---- Top nav ----
+// ---- Top nav (data-driven: home + chart are eager/static, everything else
+// is a lazy-loaded view rendered into the shared #view-generic container —
+// see #10's bundle-size lesson: most visits never touch most of these) ----
+const viewHome = document.querySelector<HTMLElement>("#view-home")!;
 const viewChart = document.querySelector<HTMLElement>("#view-chart")!;
-const viewCompat = document.querySelector<HTMLElement>("#view-compat")!;
-const viewCalendar = document.querySelector<HTMLElement>("#view-calendar")!;
+const viewGeneric = document.querySelector<HTMLElement>("#view-generic")!;
 
-// Re-render compat/calendar fresh on every visit so newly saved profiles
-// (from the chart form) always show up without extra bookkeeping.
+const GENERIC_RENDERERS: Record<string, () => Promise<void>> = {
+  compat: async () => (await import("./views/compatView")).renderCompatView(viewGeneric, LANG),
+  calendar: async () => (await import("./views/calendarView")).renderCalendarView(viewGeneric, LANG),
+  ziwei: async () => (await import("./views/ziweiView")).renderZiweiView(viewGeneric, LANG),
+  flyingstar: async () => (await import("./views/flyingStarView")).renderFlyingStarView(viewGeneric, LANG),
+  naming: async () => (await import("./views/namingView")).renderNamingView(viewGeneric, LANG),
+  dreams: async () => (await import("./views/dreamsView")).renderDreamsView(viewGeneric, LANG),
+  iching: async () => (await import("./views/ichingView")).renderIchingView(viewGeneric, LANG),
+  qimen: async () => (await import("./views/qimenView")).renderQimenView(viewGeneric, LANG),
+  almanac: async () => (await import("./views/almanacView")).renderAlmanacView(viewGeneric, LANG),
+  report: async () => (await import("./views/reportView")).renderReportView(viewGeneric, LANG),
+};
+
+async function navigateTo(view: string): Promise<void> {
+  document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"));
+  document.querySelector(`.nav-btn[data-view="${view}"]`)?.classList.add("active");
+  viewHome.hidden = view !== "home";
+  viewChart.hidden = view !== "chart";
+  viewGeneric.hidden = view === "home" || view === "chart";
+
+  if (view === "home") {
+    const { renderHomeView } = await import("./views/homeView");
+    renderHomeView(viewHome, LANG, (key) => void navigateTo(key));
+  } else {
+    await GENERIC_RENDERERS[view]?.();
+  }
+}
+
 document.querySelectorAll<HTMLButtonElement>(".nav-btn").forEach((btn) => {
-  btn.addEventListener("click", async () => {
-    document.querySelectorAll(".nav-btn").forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
-    const view = btn.dataset.view;
-    viewChart.hidden = view !== "chart";
-    viewCompat.hidden = view !== "compat";
-    viewCalendar.hidden = view !== "calendar";
-    // Lazy-loaded: most visits never touch these two tabs, so keep them out
-    // of the initial bundle (see #10 — lunar-javascript already dominates
-    // the main chunk; splitting rarely-used views is the safe size win).
-    if (view === "compat") {
-      const { renderCompatView } = await import("./views/compatView");
-      renderCompatView(viewCompat, LANG);
-    } else if (view === "calendar") {
-      const { renderCalendarView } = await import("./views/calendarView");
-      renderCalendarView(viewCalendar, LANG);
-    }
-  });
+  btn.addEventListener("click", () => navigateTo(btn.dataset.view!));
 });
 
 // ---- Quick city buttons ----
@@ -490,7 +503,10 @@ if (sharedState) {
   fillForm(sharedState);
   updateHistoricalWarnings();
   runChart();
+  void navigateTo("chart");
   resultEl.scrollIntoView({ behavior: "smooth", block: "start" });
+} else {
+  void navigateTo("home");
 }
 
 function pad(n: number): string {

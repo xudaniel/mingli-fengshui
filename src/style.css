@@ -65,6 +65,10 @@ body {
   align-items: start;
 }
 
+.layout[hidden] {
+  display: none;
+}
+
 @media (max-width: 840px) {
   .layout {
     grid-template-columns: 1fr;
@@ -1406,4 +1410,387 @@ input:focus {
 
 .sector-active {
   filter: brightness(1.6);
+}
+
+/* ---- v2.0 additions ---- */
+
+/* Home portal */
+.home-intro {
+  margin-bottom: 1.25rem;
+}
+
+.home-section {
+  margin-bottom: 1.75rem;
+}
+
+.home-section-title {
+  font-family: "Noto Serif SC", serif;
+  color: var(--gold);
+  font-size: 1rem;
+  margin: 0 0 0.7rem;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.home-tool-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  text-align: left;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+
+.home-tool-card:hover {
+  border-color: var(--gold);
+}
+
+.home-tool-icon {
+  font-size: 1.5rem;
+}
+
+.home-tool-title {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.home-tool-desc {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+/* Almanac */
+.almanac-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.almanac-tab {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.almanac-tab.active {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.almanac-card {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+}
+
+.almanac-header {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.almanac-date {
+  font-family: "Noto Serif SC", serif;
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.almanac-lunar {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.almanac-ganzhi {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  font-family: "Noto Serif SC", serif;
+  margin-bottom: 0.7rem;
+  font-size: 0.9rem;
+}
+
+.almanac-day-gz {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.almanac-tianshen.tianshen-good { color: #7fc86d; }
+.almanac-tianshen.tianshen-bad { color: #d07a6e; }
+
+.almanac-yiji {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  margin-bottom: 0.7rem;
+}
+
+.almanac-yi strong { color: #7fc86d; }
+.almanac-ji strong { color: #d07a6e; }
+
+.almanac-positions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+}
+
+.almanac-extra {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+/* Zi Wei grid */
+.ziwei-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.ziwei-cell {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem;
+  min-height: 90px;
+}
+
+.ziwei-cell.ziwei-life {
+  border-color: var(--gold);
+  background: rgba(216, 180, 106, 0.08);
+}
+
+.ziwei-cell-name {
+  font-size: 0.7rem;
+  color: var(--gold);
+}
+
+.ziwei-cell-zhi {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin: 0.2rem 0;
+}
+
+.ziwei-cell-stars {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+/* Flying star / Qi Men shared nine-palace grid */
+.fs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  max-width: 420px;
+}
+
+.fs-cell {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem;
+  text-align: center;
+}
+
+.fs-cell.fs-center {
+  border-color: var(--gold);
+}
+
+.fs-cell-dir {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-bottom: 0.3rem;
+}
+
+.fs-cell-numbers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+}
+
+.fs-shan { color: var(--wood); }
+.fs-yun { color: var(--text-dim); font-size: 0.85em; }
+.fs-xiang { color: var(--fire); }
+
+.mountain-picker {
+  grid-template-columns: repeat(8, 1fr) !important;
+}
+
+.qimen-yiqi {
+  font-family: "Noto Serif SC", serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--gold);
+}
+
+.qimen-men {
+  font-size: 0.8rem;
+  color: var(--wood);
+}
+
+.qimen-xing {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+/* Naming / wuge table */
+.wuge-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.6rem 0;
+}
+
+.wuge-row {
+  display: grid;
+  grid-template-columns: 3rem 2.2rem 3rem 1fr;
+  gap: 0.5rem;
+  align-items: center;
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.78rem;
+}
+
+.wuge-label {
+  color: var(--gold);
+  font-family: "Noto Serif SC", serif;
+}
+
+.wuge-num {
+  font-weight: 700;
+}
+
+.wuge-luck {
+  text-align: center;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  padding: 0.1rem 0;
+}
+
+.wuge-luck-大吉, .wuge-luck-吉 { color: #7fc86d; border: 1px solid #7fc86d; }
+.wuge-luck-半吉 { color: var(--gold); border: 1px solid var(--gold); }
+.wuge-luck-凶, .wuge-luck-大凶 { color: #d07a6e; border: 1px solid #d07a6e; }
+
+.wuge-meaning {
+  color: var(--text-dim);
+}
+
+/* I Ching */
+.iching-result-grid {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 1.2rem;
+  align-items: start;
+  margin-top: 0.8rem;
+}
+
+.iching-lines {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.4rem;
+}
+
+.iching-line-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.iching-line {
+  width: 70px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.iching-yang {
+  background: var(--gold);
+}
+
+.iching-yin {
+  background: linear-gradient(90deg, var(--gold) 0 30%, transparent 30% 70%, var(--gold) 70% 100%);
+}
+
+.iching-moving {
+  color: var(--fire);
+  font-size: 0.8rem;
+}
+
+.iching-info p {
+  margin: 0.3rem 0;
+  font-size: 0.85rem;
+}
+
+/* Report */
+.report-article {
+  margin-top: 1rem;
+}
+
+.report-chapter {
+  margin-bottom: 1.3rem;
+}
+
+.report-chapter h3 {
+  font-family: "Noto Serif SC", serif;
+  color: var(--gold);
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+  border-bottom: 1px dashed var(--border);
+  padding-bottom: 0.3rem;
+}
+
+.report-chapter p {
+  font-size: 0.88rem;
+  line-height: 1.7;
+  margin: 0.5rem 0;
+}
+
+@media print {
+  .top-nav, .hero-actions, .side-col, .card-head-actions, #report-generate, #report-profile, .form-card {
+    display: none !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .ziwei-grid, .fs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .mountain-picker {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
+  .iching-result-grid {
+    grid-template-columns: 1fr;
+  }
 }

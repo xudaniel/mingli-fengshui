@@ -108,6 +108,23 @@ Actionable daily guidance for each favorable element: directions, colors, materi
 - **copy link** encodes your birth data into a URL — whoever opens it gets the chart recomputed locally in their own browser, with no server involved;
 - **save image** exports a shareable portrait-format PNG (pillars, elements, gua, luck cycles) — built for chat-app sharing.
 
+## 🆕 v2.0: portal tools
+
+The home page is now a portal-style tool directory (with today's almanac embedded), adding these 8 standalone tools — all local computation, code-split and lazy-loaded:
+
+- **Zi Wei Dou Shu chart**: a simplified Central-Province-school core method — five-element bureau, life/body palace, fourteen main stars, Four Transformations. ⚠️ Zi Wei's exact day-based star placement has multiple slightly-differing traditional versions; this app commits to one self-consistent algorithm without cross-checking every classical source — treat it as a reference, not the sole authority.
+- **Flying Star (玄空飞星) feng shui**: Three Cycles Nine Periods epoch + the star-flying method (forward/reverse), casting a nine-palace chart from a sitting mountain and move-in/build year, flagging Prosperous Mountain & Facing / Upside-down Mountain & Water.
+- **Name analysis & naming tool**: the five-grid (五格) stroke method and its 81-number fortune table; built-in surname and common given-name-character dictionaries, with a manual Kangxi-stroke-count fallback for characters not covered; can also suggest candidate names filtered by favorable elements.
+- **Dream dictionary**: about 117 traditional dream-symbol entries (not exhaustive, growing over time), searchable by keyword or browsable by category — cultural entertainment only.
+- **Quick divination (Liu Yao / Plum Blossom)**: cast a hexagram via three-coin tosses (Liu Yao) or by numbers/time (Plum Blossom Numerology), producing the original hexagram, moving lines, and resulting hexagram.
+- **Qi Men Dun Jia chart**: casts the current base plate (地盘) — yin/yang cycle and period number, the three spirits and six chief stems, and the doors/stars' home positions. ⚠️ Only the base plate is implemented (structural reference); the dynamic time-based overlay (转值符使) is not — this is not a complete Qi Men chart.
+- **Daily almanac (老黄历)**: the twelve day officers, 28 lunar mansions, auspicious/inauspicious day classification, wealth/happiness/Tai Sui directions, and traditional do's/don'ts, with today's card embedded on the home page.
+- **Full narrative report**: compiles your already-cast chart — pillars, element balance, personality/career, luck cycles, feng shui directions — into one readable narrative, printable / savable as PDF.
+
+The existing compatibility analysis, auspicious-day calendar, and Eight Mansions compass remain available from the home page's tool sections.
+
+> A community discussion board (for sharing and discussing charts) is not yet implemented — it would require a real backend (accounts, a database, moderation), which conflicts architecturally with this app's "everything computed locally, nothing uploaded" privacy stance. Still under evaluation.
+
 ## 🚀 Getting started
 
 Requires Node.js 18+.
@@ -125,7 +142,7 @@ npm run build
 # preview the production build
 npm run preview
 
-# run the test suite (vitest, 150+ cases over core algorithms and known-chart snapshots)
+# run the test suite (vitest, 220+ cases over core algorithms and known-chart snapshots)
 npm test
 ```
 
@@ -141,12 +158,21 @@ mingli-fengshui/
 │   ├── main.ts                # UI orchestration: form, nav, rendering, profiles, about dialog
 │   ├── style.css               # all styles (dark theme)
 │   ├── views/                  # relatively self-contained views/widgets (lazy-loaded, see bundle-size note below)
+│   │   ├── homeView.ts          # portal-style home page: tool nav + today's almanac card
 │   │   ├── compatView.ts        # compatibility analysis page
 │   │   ├── calendarView.ts      # auspicious-day calendar page
 │   │   ├── compassSvg.ts        # Eight Mansions compass SVG renderer
 │   │   ├── compassLive.ts       # live mobile compass (DeviceOrientation)
 │   │   ├── lifeCurveSvg.ts      # life-curve SVG renderer
-│   │   └── shareImage.ts        # chart-summary image export (hand-drawn Canvas)
+│   │   ├── shareImage.ts        # chart-summary image export (hand-drawn Canvas)
+│   │   ├── ziweiView.ts         # Zi Wei Dou Shu chart page
+│   │   ├── flyingStarView.ts    # Flying Star feng shui page
+│   │   ├── namingView.ts        # name analysis & naming page
+│   │   ├── dreamsView.ts        # dream dictionary page
+│   │   ├── ichingView.ts        # Liu Yao / Plum Blossom divination page
+│   │   ├── qimenView.ts         # Qi Men Dun Jia chart page
+│   │   ├── almanacView.ts       # daily almanac page
+│   │   └── reportView.ts        # full narrative report page
 │   └── lib/
 │       ├── bazi.ts              # chart pipeline: aggregates library output & analyses
 │       ├── analysis.ts          # element cycles, weighted strength, favorable elements
@@ -169,9 +195,20 @@ mingli-fengshui/
 │       ├── solarTime.ts         # true solar time (longitude + equation of time)
 │       ├── historicalTime.ts    # 1986–1991 DST periods & pre-1949 hints
 │       ├── cities.ts            # curated city coordinates + Nominatim search
+│       ├── ziwei.ts             # Zi Wei Dou Shu core algorithm
+│       ├── flyingStar.ts        # Flying Star epoch & star-flying algorithm
+│       ├── wuge.ts              # five-grid stroke method & 81-number fortune table
+│       ├── strokeData.ts        # surname / given-name-character stroke dictionaries
+│       ├── namingSuggest.ts     # candidate-name filtering by favorable elements
+│       ├── dreams.ts            # dream-symbol data & search
+│       ├── ichingData.ts        # trigram / 64-hexagram data
+│       ├── iching.ts            # Liu Yao & Plum Blossom Numerology casting
+│       ├── qimen.ts             # Qi Men Dun Jia base-plate algorithm
+│       ├── almanac.ts           # daily almanac data aggregation
+│       ├── report.ts            # full narrative report text generation
 │       ├── i18n/                # dictionary, terminology glosses, language state
 │       └── lunar.d.ts           # minimal typings for lunar-javascript
-├── tests/                    # vitest suite (150+ cases, jsdom environment)
+├── tests/                    # vitest suite (220+ cases, jsdom environment)
 ├── .github/workflows/        # CI: typecheck + tests + build, then Pages deploy
 ├── LICENSE                   # MIT
 └── package.json
