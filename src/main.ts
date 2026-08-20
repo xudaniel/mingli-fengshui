@@ -37,7 +37,7 @@ import { encodeShareHash, decodeShareHash } from "./lib/shareLink";
 import { t } from "./lib/i18n/dict";
 import { getLang, setLang, type Lang } from "./lib/i18n/state";
 
-const APP_VERSION = "2.0.0";
+const APP_VERSION = "2.1.0";
 const LANG: Lang = getLang();
 const tt = (key: string, vars?: Record<string, string | number>) => t(LANG, key, vars);
 
