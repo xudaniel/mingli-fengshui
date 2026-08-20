@@ -2,6 +2,8 @@
 
 **中文** [README.md](README.md) | **English** (this page)
 
+### 👤 Author: [Daniel Xu](https://github.com/xudaniel)
+
 > Enter your **birthplace** and **birth date & time** to cast a complete Four Pillars (BaZi) chart — with Five-Element strength analysis and Eight Mansions feng shui directions — entirely in your browser.
 
 **🌐 Live app: <https://xudaniel.github.io/mingli-fengshui/>** (installable as a PWA, works offline)
