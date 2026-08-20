@@ -2,6 +2,7 @@ export type Lang = "zh" | "en";
 
 const KEY = "mingli-fengshui:lang";
 
+/** 默认中文界面；仅当用户曾主动切换过语言时才读取保存的偏好。 */
 export function getLang(): Lang {
   try {
     const saved = localStorage.getItem(KEY);
@@ -9,8 +10,6 @@ export function getLang(): Lang {
   } catch {
     // ignore
   }
-  if (typeof navigator !== "undefined" && navigator.language?.toLowerCase().startsWith("zh")) return "zh";
-  if (typeof navigator !== "undefined" && navigator.language) return "en";
   return "zh";
 }
 
