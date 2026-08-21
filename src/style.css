@@ -1931,6 +1931,29 @@ input:focus {
   margin: 0.5rem 0;
 }
 
+.report-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+  padding-bottom: 1.3rem;
+  margin-bottom: 1.3rem;
+  border-bottom: 1px dashed var(--border);
+}
+
+.report-visual h4 {
+  font-family: "Noto Serif SC", serif;
+  color: var(--gold);
+  font-size: 0.9rem;
+  margin: 0 0 0.6rem;
+}
+
+.report-visual-gua {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
 @media print {
   .top-nav, .hero-actions, .side-col, .card-head-actions, #report-generate, #report-profile, .form-card {
     display: none !important;
