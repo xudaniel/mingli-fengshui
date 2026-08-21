@@ -1,10 +1,9 @@
 import { loadProfiles, type Profile } from "../lib/profiles";
 import { Solar } from "lunar-javascript";
 import { computeZiWei } from "../lib/ziwei";
+import { renderZiweiChartGrid } from "./ziweiChart";
 import { t } from "../lib/i18n/dict";
 import type { Lang } from "../lib/i18n/state";
-
-const ZHI = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
 
 function shiChenIndexFor(hour: number): number {
   // 23-0 时为子时(0)，1-2为丑(1)...，每两小时一个时辰
@@ -58,23 +57,7 @@ export function renderZiweiView(container: HTMLElement, lang: Lang): void {
       shiChenIndex: shiChenIndexFor(h),
     });
 
-    const grid = ZHI.map((zhi, zhiIndex) => {
-      const palace = chart.palaces.find((pp) => pp.zhiIndex === zhiIndex)!;
-      const isLife = zhiIndex === chart.lifePalaceIndex;
-      const isBody = zhiIndex === chart.bodyPalaceIndex;
-      return `
-        <div class="ziwei-cell${isLife ? " ziwei-life" : ""}">
-          <div class="ziwei-cell-name">${palace.name}${isLife ? ` (${t(lang, "ziwei.lifePalace")})` : ""}${isBody ? ` (${t(lang, "ziwei.bodyPalace")})` : ""}</div>
-          <div class="ziwei-cell-zhi">${zhi}</div>
-          <div class="ziwei-cell-stars">${palace.stars.join("、") || "--"}</div>
-        </div>`;
-    }).join("");
-
-    resultEl.innerHTML = `
-      <p class="hint">${t(lang, "ziwei.ju")}：${chart.ju.name} · ${t(lang, "ziwei.lifePalace")}：${ZHI[chart.lifePalaceIndex]} · ${t(lang, "ziwei.bodyPalace")}：${ZHI[chart.bodyPalaceIndex]}</p>
-      <div class="ziwei-grid">${grid}</div>
-      <p class="hint"><strong>${t(lang, "ziwei.siHua")}：</strong>${chart.siHua.map((s) => `${s.star}${s.type}`).join(" · ")}</p>
-    `;
+    resultEl.innerHTML = renderZiweiChartGrid(chart, lang, { profileLabel: p.label || undefined });
   });
 
   // 默认自动选中第一个档案并排盘
