@@ -84,7 +84,7 @@ A line chart showing how well each year's stem/branch aligns with your favorable
 Select two saved profiles and get a simplified folk-style compatibility read across **day-stem combination, day-branch relations, zodiac relations, element complementarity, and gua grouping**, plus a 0–100 overall score.
 
 ### 📅 Personal auspicious-day calendar
-Browse a month view where each day is scored against your chart — day-pillar clashes and favorable stems are flagged — layered on lunar-javascript's built-in daily do's/don'ts, filterable by event type (signing / moving / opening a business / wedding).
+Browse a month view where each day is scored against your chart — day-pillar clashes and favorable stems are flagged — layered on lunar-javascript's built-in daily do's/don'ts, filterable by event type (signing / moving / opening a business / wedding). A "find the best day" mode searches any date range (optionally filtered by event type) and returns a ranked list of the best-scoring days with a one-line reason each, instead of browsing month by month.
 
 ### 🎨 Element remedy suggestions
 Actionable daily guidance for each favorable element: directions, colors, materials, numbers, peak season, and home-arrangement dos & don'ts.
@@ -126,6 +126,13 @@ The home page is now a portal-style tool directory (with today's almanac embedde
 The existing compatibility analysis, auspicious-day calendar, and Eight Mansions compass remain available from the home page's tool sections.
 
 > A community discussion board (for sharing and discussing charts) is not yet implemented — it would require a real backend (accounts, a database, moderation), which conflicts architecturally with this app's "everything computed locally, nothing uploaded" privacy stance. Still under evaluation.
+
+## 🆕 v2.2: personalized home page, best-day search, Zi Wei diagram, visual report summary
+
+- **"Your Day Today" home page card**: with a saved profile, a personalized daily brief appears alongside the generic almanac card — today's day-pillar score, whether the year is a Tai Sui conflict year, and today's Qi Men bureau, summed up in one line; switchable when multiple profiles are saved.
+- **Calendar "find the best day"**: pick a start date and a day count (with an optional event-type filter) to get a ranked list of the best-scoring days in that range with a one-line reason each, instead of browsing month by month.
+- **Zi Wei chart diagram**: replaces the flat grid with the traditional twelve-palace layout (palaces ring the border in forward zhi order starting at 巳, center holds the bureau/Four Transformations summary); the life palace is emphasized by styling, the body palace by an explicit badge.
+- **Visual report summary**: the full narrative report now opens with a four-pillars grid, the Eight Mansions compass, and the Zi Wei chart (omitted for hour-unknown profiles) ahead of the narrative chapters, so print/PDF output is one complete packet.
 
 ## 🚀 Getting started
 
