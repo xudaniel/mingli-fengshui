@@ -1370,6 +1370,51 @@ input:focus {
   margin: 0.3rem 0;
 }
 
+/* Best-day finder results */
+.range-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.7rem;
+  margin-top: 0.7rem;
+}
+
+.range-result-card {
+  background: var(--bg-panel-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  border-radius: 10px;
+  padding: 0.8rem 0.9rem;
+}
+
+.range-result-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.range-result-date {
+  font-weight: 700;
+}
+
+.range-result-ganzhi {
+  font-family: "Noto Serif SC", serif;
+  color: var(--gold);
+}
+
+.range-result-score {
+  margin-left: auto;
+  color: #7fc86d;
+  font-weight: 700;
+}
+
+.range-result-reason {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin: 0 0 0.6rem;
+  line-height: 1.5;
+}
+
 /* ---- Live compass overlay ---- */
 
 .compass-overlay {
