@@ -170,6 +170,10 @@ const zh: Dict = {
   "nav.almanac": "老黄历",
 
   "home.subtitle": "选择一项工具开始，或先看看今天的黄历",
+  "home.todayBrief.title": "今日运势",
+  "home.todayBrief.dayPillar": "日柱",
+  "home.todayBrief.qimen": "今日奇门",
+  "home.todayBrief.pickProfile": "档案",
   "home.section.charts": "命理排盘",
   "home.section.fengshui": "风水",
   "home.section.quick": "速测速占",
@@ -466,6 +470,10 @@ const en: Dict = {
   "nav.almanac": "Almanac",
 
   "home.subtitle": "Pick a tool to start, or check today's almanac first",
+  "home.todayBrief.title": "Your Day Today",
+  "home.todayBrief.dayPillar": "Day pillar",
+  "home.todayBrief.qimen": "Today's Qi Men",
+  "home.todayBrief.pickProfile": "Profile",
   "home.section.charts": "Charts",
   "home.section.fengshui": "Feng Shui",
   "home.section.quick": "Quick Tools",

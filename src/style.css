@@ -1521,6 +1521,39 @@ input:focus {
   line-height: 1.4;
 }
 
+/* Home "today brief" personalized card */
+.today-brief-verdict {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  padding: 0.6rem 0.9rem;
+  border-radius: 8px;
+  border-left: 3px solid currentColor;
+  margin: 0.5rem 0 0.8rem;
+}
+
+.today-brief-good {
+  color: #7fc86d;
+  background: rgba(127, 200, 109, 0.08);
+}
+
+.today-brief-neutral {
+  color: var(--text-dim);
+  background: var(--bg-panel-2);
+}
+
+.today-brief-bad {
+  color: #d07a6e;
+  background: rgba(208, 122, 110, 0.08);
+}
+
+.today-brief-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
 /* Almanac */
 .almanac-tabs {
   display: flex;
