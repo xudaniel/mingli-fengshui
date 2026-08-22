@@ -37,7 +37,7 @@ import { encodeShareHash, decodeShareHash } from "./lib/shareLink";
 import { t } from "./lib/i18n/dict";
 import { getLang, setLang, type Lang } from "./lib/i18n/state";
 
-const APP_VERSION = "2.2.0";
+const APP_VERSION = "2.3.0";
 const LANG: Lang = getLang();
 const tt = (key: string, vars?: Record<string, string | number>) => t(LANG, key, vars);
 
@@ -195,6 +195,16 @@ app.innerHTML = `
       <p>${tt("about.whatNot")}</p>
       <h3>${tt("about.privacyTitle")}</h3>
       <p>${tt("about.privacy")}</p>
+      <div id="notify-settings" hidden>
+        <h3>${tt("notify.title")}</h3>
+        <p class="hint">${tt("notify.desc")}</p>
+        <label class="checkbox-row"><input type="checkbox" id="notify-enable" /> ${tt("notify.enable")}</label>
+        <div class="field" style="margin-top:0.6rem">
+          <label>${tt("notify.time")}</label>
+          <input type="time" id="notify-time" value="08:00" />
+        </div>
+        <p class="hint" id="notify-status"></p>
+      </div>
       <form method="dialog"><button class="btn-secondary">${tt("about.close")}</button></form>
     </dialog>
   </div>
@@ -211,6 +221,53 @@ document.querySelector("#lang-toggle")!.addEventListener("click", () => {
 // ---- About dialog ----
 const aboutDialog = document.querySelector<HTMLDialogElement>("#about-dialog")!;
 document.querySelector("#about-btn")!.addEventListener("click", () => aboutDialog.showModal());
+
+// ---- Daily local notification (opt-in; hidden where unsupported) ----
+void (async () => {
+  const { notifySupported, loadNotifyPref, saveNotifyPref, requestNotifyPermission, startNotifyLoop } = await import(
+    "./lib/notify"
+  );
+  const { computeFromProfile } = await import("./lib/profileCompute");
+  const { computeTodayBrief } = await import("./lib/todayBrief");
+  if (!notifySupported()) return; // 不支持的平台整块隐藏，不给出坏掉的开关
+  const settingsEl = document.querySelector<HTMLElement>("#notify-settings")!;
+  settingsEl.hidden = false;
+  const enableEl = document.querySelector<HTMLInputElement>("#notify-enable")!;
+  const timeEl = document.querySelector<HTMLInputElement>("#notify-time")!;
+  const statusEl = document.querySelector<HTMLElement>("#notify-status")!;
+
+  const pref = loadNotifyPref();
+  enableEl.checked = pref.enabled;
+  timeEl.value = pref.time;
+
+  enableEl.addEventListener("change", async () => {
+    statusEl.textContent = "";
+    if (enableEl.checked) {
+      const granted = await requestNotifyPermission();
+      if (!granted) {
+        enableEl.checked = false;
+        statusEl.textContent = tt("notify.permissionDenied");
+        return;
+      }
+    }
+    saveNotifyPref({ ...loadNotifyPref(), enabled: enableEl.checked });
+  });
+  timeEl.addEventListener("change", () => {
+    if (timeEl.value) saveNotifyPref({ ...loadNotifyPref(), time: timeEl.value });
+  });
+
+  startNotifyLoop(() => {
+    // 弹出时才计算：取最近使用的档案生成当日简报文本
+    const profiles = loadProfiles();
+    if (profiles.length === 0) return null;
+    try {
+      const { bazi } = computeFromProfile(profiles[0]);
+      return computeTodayBrief(bazi, LANG).verdictText;
+    } catch {
+      return null;
+    }
+  });
+})();
 
 // ---- Top nav (data-driven: home + chart are eager/static, everything else
 // is a lazy-loaded view rendered into the shared #view-generic container —
@@ -230,6 +287,11 @@ const GENERIC_RENDERERS: Record<string, () => Promise<void>> = {
   qimen: async () => (await import("./views/qimenView")).renderQimenView(viewGeneric, LANG),
   almanac: async () => (await import("./views/almanacView")).renderAlmanacView(viewGeneric, LANG),
   report: async () => (await import("./views/reportView")).renderReportView(viewGeneric, LANG),
+  stick: async () => (await import("./views/fortuneStickView")).renderFortuneStickView(viewGeneric, LANG),
+  tarot: async () => (await import("./views/tarotView")).renderTarotView(viewGeneric, LANG),
+  numluck: async () => (await import("./views/numberLuckView")).renderNumberLuckView(viewGeneric, LANG),
+  moles: async () => (await import("./views/molesView")).renderMolesView(viewGeneric, LANG),
+  terms: async () => (await import("./views/solarTermsView")).renderSolarTermsView(viewGeneric, LANG),
 };
 
 async function navigateTo(view: string): Promise<void> {

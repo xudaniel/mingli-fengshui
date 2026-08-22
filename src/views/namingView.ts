@@ -94,7 +94,16 @@ export function renderNamingView(container: HTMLElement, lang: Lang): void {
     const surnameStrokes = surnameChars.map(strokesOf);
     const givenStrokes = givenChars.map(strokesOf);
     const report = buildWuGeReport(surnameStrokes as number[], givenStrokes as number[]);
-    analyzeResult.innerHTML = renderReportHtml(report, lang);
+    const fullName = surnameChars.join("") + givenChars.join("");
+    analyzeResult.innerHTML =
+      renderReportHtml(report, lang) +
+      `<button type="button" id="naming-save-image" class="btn-secondary" style="margin-top:0.9rem">${t(lang, "result.saveImage")}</button>`;
+    analyzeResult.querySelector("#naming-save-image")!.addEventListener("click", async () => {
+      const { renderNamingShareCanvas } = await import("./shareNamingImage");
+      const { downloadCanvas } = await import("./shareCanvas");
+      const canvas = await renderNamingShareCanvas(fullName, report, lang);
+      downloadCanvas(canvas, `naming-${fullName}.png`);
+    });
   }
 
   function renderManualForm(surnameChars: string[], givenChars: string[], unknown: string[]): void {

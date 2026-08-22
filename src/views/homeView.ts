@@ -2,6 +2,7 @@ import { renderTodayAlmanacCard } from "./almanacView";
 import { loadProfiles, type Profile } from "../lib/profiles";
 import { computeFromProfile } from "../lib/profileCompute";
 import { computeTodayBrief } from "../lib/todayBrief";
+import { computeLunarBirthday } from "../lib/lunarBirthday";
 import { t } from "../lib/i18n/dict";
 import type { Lang } from "../lib/i18n/state";
 
@@ -30,15 +31,26 @@ export const TOOL_SECTIONS: { sectionKey: string; tools: ToolCard[] }[] = [
   {
     sectionKey: "home.section.quick",
     tools: [
-      { key: "naming", titleKey: "nav.naming", descKey: "home.card.naming.desc", icon: "✒️" },
-      { key: "dreams", titleKey: "nav.dreams", descKey: "home.card.dreams.desc", icon: "💭" },
       { key: "iching", titleKey: "nav.iching", descKey: "home.card.iching.desc", icon: "☰" },
       { key: "qimen", titleKey: "nav.qimen", descKey: "home.card.qimen.desc", icon: "🔮" },
+      { key: "stick", titleKey: "nav.stick", descKey: "home.card.stick.desc", icon: "🎋" },
+      { key: "tarot", titleKey: "nav.tarot", descKey: "home.card.tarot.desc", icon: "🃏" },
+    ],
+  },
+  {
+    sectionKey: "home.section.reference",
+    tools: [
+      { key: "almanac", titleKey: "nav.almanac", descKey: "home.card.almanac.desc", icon: "📖" },
+      { key: "dreams", titleKey: "nav.dreams", descKey: "home.card.dreams.desc", icon: "💭" },
+      { key: "moles", titleKey: "nav.moles", descKey: "home.card.moles.desc", icon: "🔎" },
+      { key: "terms", titleKey: "nav.terms", descKey: "home.card.terms.desc", icon: "🌾" },
+      { key: "numluck", titleKey: "nav.numluck", descKey: "home.card.numluck.desc", icon: "🔢" },
     ],
   },
   {
     sectionKey: "home.section.tools",
     tools: [
+      { key: "naming", titleKey: "nav.naming", descKey: "home.card.naming.desc", icon: "✒️" },
       { key: "compat", titleKey: "nav.compat", descKey: "home.card.compat.desc", icon: "💑" },
       { key: "calendar", titleKey: "nav.calendar", descKey: "home.card.calendar.desc", icon: "📅" },
       { key: "report", titleKey: "report.title", descKey: "home.card.report.desc", icon: "📜" },
@@ -61,6 +73,12 @@ function renderTodayBriefInto(target: HTMLElement, profiles: Profile[], lang: La
   function draw(profile: Profile) {
     const { bazi } = computeFromProfile(profile);
     const brief = computeTodayBrief(bazi, lang);
+    const birthday = computeLunarBirthday(profile.date);
+    const birthdayLine = birthday
+      ? birthday.daysUntil === 0
+        ? `<span class="today-brief-birthday">🎂 ${t(lang, "birthday.today")}</span>`
+        : `<span>${t(lang, "birthday.next")}：${birthday.lunarLabel} · ${birthday.nextSolarDate}（${birthday.daysUntil} ${t(lang, "birthday.daysAway")}）</span>`
+      : "";
     target.innerHTML = `
       <div class="card">
         <h2>${t(lang, "home.todayBrief.title")}${profiles.length > 1 ? "" : ` · ${profile.label || "--"}`}</h2>
@@ -73,6 +91,7 @@ function renderTodayBriefInto(target: HTMLElement, profiles: Profile[], lang: La
         <div class="today-brief-meta">
           <span>${t(lang, "home.todayBrief.dayPillar")}：${brief.dayScore.ganZhi}（${brief.dayScore.score >= 0 ? "+" : ""}${brief.dayScore.score}）</span>
           <span>${t(lang, "home.todayBrief.qimen")}：${brief.qimenLabel}</span>
+          ${birthdayLine}
         </div>
       </div>
     `;

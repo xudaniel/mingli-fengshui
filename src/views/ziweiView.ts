@@ -57,7 +57,16 @@ export function renderZiweiView(container: HTMLElement, lang: Lang): void {
       shiChenIndex: shiChenIndexFor(h),
     });
 
-    resultEl.innerHTML = renderZiweiChartGrid(chart, lang, { profileLabel: p.label || undefined });
+    resultEl.innerHTML =
+      renderZiweiChartGrid(chart, lang, { profileLabel: p.label || undefined }) +
+      `<button type="button" id="ziwei-save-image" class="btn-secondary" style="margin-top:0.9rem">${t(lang, "result.saveImage")}</button>`;
+
+    resultEl.querySelector("#ziwei-save-image")!.addEventListener("click", async () => {
+      const { renderZiweiShareCanvas } = await import("./shareZiweiImage");
+      const { downloadCanvas } = await import("./shareCanvas");
+      const canvas = await renderZiweiShareCanvas(chart, `${p.label || "--"} · ${p.date} ${p.time}`, lang);
+      downloadCanvas(canvas, `ziwei-${p.date}.png`);
+    });
   });
 
   // 默认自动选中第一个档案并排盘

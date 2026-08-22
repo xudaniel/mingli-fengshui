@@ -134,6 +134,21 @@ The existing compatibility analysis, auspicious-day calendar, and Eight Mansions
 - **Zi Wei chart diagram**: replaces the flat grid with the traditional twelve-palace layout (palaces ring the border in forward zhi order starting at 巳, center holds the bureau/Four Transformations summary); the life palace is emphasized by styling, the body palace by an explicit badge.
 - **Visual report summary**: the full narrative report now opens with a four-pillars grid, the Eight Mansions compass, and the Zi Wei chart (omitted for hour-unknown profiles) ahead of the narrative chapters, so print/PDF output is one complete packet.
 
+## 🆕 v2.3: folk reference & more quick tools
+
+Ten additions, all computed locally and lazy-loaded:
+
+- **Fortune stick draw (每日一签)**: draw one of 100 sticks for its poem and reading (original faux-classical content written for this app — not any real temple's set).
+- **Single-card Tarot draw**: all 78 cards (22 Major + 56 Minor Arcana) with upright/reversed readings, original plain-language interpretations.
+- **Number luck checker**: phone/plate numbers read by their trailing 2/3/4-digit sums against the 81-number table (shared with name analysis).
+- **Mole-position dictionary**: ~50 traditional mole-position meanings, searchable and browsable by body area (with a see-a-doctor note — no medical claims).
+- **24 Solar Terms wellness guide**: auto-detects the current term; seasonal notes and traditional wellness tips for all 24.
+- **Lunar birthday tracker**: the home "today" card shows your next lunar birthday's solar date and countdown (leap months handled).
+- **Hour-level timing helper**: any day in the calendar expands into a 12-hour-block breakdown scored by the same rules as day scoring.
+- **Daily local reminder**: an opt-in local notification (set in the About dialog) — fully local, no server; hidden where unsupported.
+- **Image export extended**: Zi Wei charts and name-analysis results now export as share images too (shared Canvas base with the BaZi export).
+- **Perpetual calendar lookup**: the almanac page can look up any date roughly 1900–2100.
+
 ## 🚀 Getting started
 
 Requires Node.js 18+.
@@ -151,7 +166,7 @@ npm run build
 # preview the production build
 npm run preview
 
-# run the test suite (vitest, 220+ cases over core algorithms and known-chart snapshots)
+# run the test suite (vitest, 290+ cases over core algorithms and known-chart snapshots)
 npm test
 ```
 
@@ -217,7 +232,7 @@ mingli-fengshui/
 │       ├── report.ts            # full narrative report text generation
 │       ├── i18n/                # dictionary, terminology glosses, language state
 │       └── lunar.d.ts           # minimal typings for lunar-javascript
-├── tests/                    # vitest suite (220+ cases, jsdom environment)
+├── tests/                    # vitest suite (290+ cases, jsdom environment)
 ├── .github/workflows/        # CI: typecheck + tests + build, then Pages deploy
 ├── LICENSE                   # MIT
 └── package.json

@@ -1,4 +1,4 @@
-import { getAlmanacRange, type DailyAlmanac } from "../lib/almanac";
+import { getAlmanacRange, getDailyAlmanac, type DailyAlmanac } from "../lib/almanac";
 import { t } from "../lib/i18n/dict";
 import type { Lang } from "../lib/i18n/state";
 
@@ -45,6 +45,11 @@ export function renderAlmanacView(container: HTMLElement, lang: Lang): void {
         ${range.map((a, i) => `<button type="button" class="almanac-tab${i === 0 ? " active" : ""}" data-index="${i}">${i === 0 ? t(lang, "almanac.today") : a.solarDate.slice(5)}</button>`).join("")}
       </div>
       <div id="almanac-content"></div>
+      <div class="field" style="margin-top:1.2rem">
+        <label>${t(lang, "almanac.lookupLabel")}</label>
+        <input type="date" id="almanac-lookup-date" min="1900-03-01" max="2099-12-31" />
+      </div>
+      <div id="almanac-lookup-result"></div>
     </div>
   `;
 
@@ -57,6 +62,22 @@ export function renderAlmanacView(container: HTMLElement, lang: Lang): void {
       btn.classList.add("active");
       content.innerHTML = renderCard(range[Number(btn.dataset.index)]);
     });
+  });
+
+  const lookupInput = container.querySelector<HTMLInputElement>("#almanac-lookup-date")!;
+  const lookupResult = container.querySelector<HTMLDivElement>("#almanac-lookup-result")!;
+  lookupInput.addEventListener("change", () => {
+    const [y, m, d] = lookupInput.value.split("-").map(Number);
+    // lunar-javascript 的可靠范围大约为 1900-2100，超出直接给出明确错误
+    if (!y || y < 1900 || y > 2099) {
+      lookupResult.innerHTML = lookupInput.value ? `<p class="hint">${t(lang, "almanac.lookupError")}</p>` : "";
+      return;
+    }
+    try {
+      lookupResult.innerHTML = renderCard(getDailyAlmanac(new Date(y, m - 1, d)));
+    } catch {
+      lookupResult.innerHTML = `<p class="hint">${t(lang, "almanac.lookupError")}</p>`;
+    }
   });
 }
 

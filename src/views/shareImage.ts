@@ -1,47 +1,24 @@
 /** 命盘摘要图片导出：把排盘结果绘制为一张竖版长图，供保存/分享。
- * 纯 Canvas 手绘，不依赖任何图表库；导出前等待自定义字体加载完成。 */
+ * 纯 Canvas 手绘，不依赖任何图表库；布局基件见 shareCanvas.ts。 */
 
 import type { BaziResult } from "../lib/bazi";
 import type { GuaInfo } from "../lib/bagua";
 import { ganElement } from "../lib/analysis";
 import type { Lang } from "../lib/i18n/state";
 import { t } from "../lib/i18n/dict";
+import {
+  SHARE_COLORS as COLORS,
+  SHARE_ELEMENT_COLOR as ELEMENT_COLOR,
+  roundRect,
+  createShareCanvas,
+  drawShareHeader,
+  drawShareFooter,
+} from "./shareCanvas";
 
-const COLORS = {
-  bg: "#100e13",
-  panel: "#18151d",
-  border: "#322c3a",
-  text: "#e9e4f0",
-  textDim: "#a89fb5",
-  gold: "#d8b46a",
-  wood: "#6fae5c",
-  fire: "#c65a4a",
-  earth: "#c79a4b",
-  metal: "#cfcfd6",
-  water: "#5b8dc2",
-} as const;
-
-const ELEMENT_COLOR: Record<string, string> = {
-  木: COLORS.wood,
-  火: COLORS.fire,
-  土: COLORS.earth,
-  金: COLORS.metal,
-  水: COLORS.water,
-};
+export { downloadCanvas } from "./shareCanvas";
 
 const W = 720;
 const H = 1120;
-const SCALE = 2; // 2x for crisp export
-
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
 
 export interface ShareCardMeta {
   name: string;
@@ -55,42 +32,11 @@ export async function renderShareCardCanvas(
   meta: ShareCardMeta,
   lang: Lang,
 ): Promise<HTMLCanvasElement> {
-  if (typeof document !== "undefined" && "fonts" in document) {
-    try {
-      await document.fonts.ready;
-    } catch {
-      // ignore — fall back to default fonts
-    }
-  }
-
-  const canvas = document.createElement("canvas");
-  canvas.width = W * SCALE;
-  canvas.height = H * SCALE;
-  const ctx = canvas.getContext("2d")!;
-  ctx.scale(SCALE, SCALE);
-
-  // background
-  const grad = ctx.createLinearGradient(0, 0, 0, H);
-  grad.addColorStop(0, "#151119");
-  grad.addColorStop(1, COLORS.bg);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, H);
+  const { canvas, ctx } = await createShareCanvas(W, H);
 
   const PAD = 36;
-  let y = 56;
-
-  // title
-  ctx.fillStyle = COLORS.gold;
-  ctx.font = "700 30px 'Noto Serif SC', serif";
-  ctx.textAlign = "center";
-  ctx.fillText(t(lang, "app.title"), W / 2, y);
-  y += 34;
-
-  ctx.fillStyle = COLORS.textDim;
-  ctx.font = "15px 'Noto Sans SC', sans-serif";
   const subtitle = `${meta.name ? meta.name + " · " : ""}${meta.cityLabel} · ${meta.civilLabel}`;
-  ctx.fillText(subtitle, W / 2, y);
-  y += 44;
+  let y = drawShareHeader(ctx, W, t(lang, "app.title"), subtitle);
 
   // pillars row
   const pillarW = (W - PAD * 2 - 3 * 14) / 4;
@@ -214,25 +160,6 @@ export async function renderShareCardCanvas(
     y += 64 + 30;
   }
 
-  // footer watermark
-  ctx.textAlign = "center";
-  ctx.fillStyle = COLORS.textDim;
-  ctx.font = "12px 'Noto Sans SC', sans-serif";
-  ctx.fillText("mingli-fengshui · xudaniel.github.io/mingli-fengshui", W / 2, H - 24);
-
+  drawShareFooter(ctx, W, H);
   return canvas;
-}
-
-export function downloadCanvas(canvas: HTMLCanvasElement, filename: string): void {
-  canvas.toBlob((blob) => {
-    if (!blob) return;
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  }, "image/png");
 }

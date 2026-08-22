@@ -1,6 +1,7 @@
 import { loadProfiles, type Profile } from "../lib/profiles";
 import { computeFromProfile } from "../lib/profileCompute";
 import { computeMonthCalendar, computeDateRangeCalendar, filterGoodDaysForEvent, rankBestDays, type DayScore, type EventType } from "../lib/calendar";
+import { scoreHoursOfDay } from "../lib/hourTiming";
 import { t } from "../lib/i18n/dict";
 import type { Lang } from "../lib/i18n/state";
 
@@ -153,7 +154,32 @@ export function renderCalendarView(container: HTMLElement, lang: Lang): void {
       <h4>${d.date} · ${d.ganZhi} · ${d.lunarLabel}</h4>
       <p><strong>${t(lang, "calendar.yi")}：</strong>${d.yi.join("、") || "--"}</p>
       <p><strong>${t(lang, "calendar.ji")}：</strong>${d.ji.join("、") || "--"}</p>
+      <button type="button" id="cal-hourly-btn" class="btn-secondary btn-small">${t(lang, "calendar.hourly")}</button>
+      <div id="cal-hourly"></div>
     `;
+    detail.querySelector("#cal-hourly-btn")!.addEventListener("click", () => {
+      const profile = currentProfile();
+      if (!profile) return;
+      const { bazi } = computeFromProfile(profile);
+      const [y, m, dd] = d.date.split("-").map(Number);
+      const hours = scoreHoursOfDay(y, m, dd, bazi.pillars[2].zhi, bazi.strength.favorable, bazi.strength.unfavorable);
+      detail.querySelector<HTMLDivElement>("#cal-hourly")!.innerHTML = `
+        <p class="hint" style="margin-top:0.8rem"><strong>${t(lang, "calendar.hourlyTitle")}</strong></p>
+        <div class="hourly-grid">
+          ${hours
+            .map(
+              (h) => `
+            <div class="hourly-cell ${h.score >= 2 ? "cal-great" : h.score > 0 ? "cal-good" : h.score === 0 ? "cal-neutral" : h.score >= -2 ? "cal-bad" : "cal-terrible"}">
+              <span class="hourly-zhi">${h.zhi}${lang === "zh" ? "时" : ""}</span>
+              <span class="hourly-ganzhi">${h.ganZhi}</span>
+              <span class="hourly-label">${h.label}</span>
+              <span class="hourly-score">${h.score >= 0 ? "+" : ""}${h.score}</span>
+            </div>`,
+            )
+            .join("")}
+        </div>
+      `;
+    });
   }
 
   container.querySelector("#cal-prev")!.addEventListener("click", () => {
